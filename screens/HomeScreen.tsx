@@ -1,19 +1,15 @@
 import { SafeAreaView, ScrollView, StyleSheet, Text, Vibration, View } from "react-native";
 import React, { useEffect, useState } from "react";
-import { getOrder } from "../configs/variable";
-import {
-  Order,
-  Customer,
-  Restaurant,
-  OrderDetail,
-  UserOrder,
-} from "../configs/types";
+
+
 import OrdersItem from "../components/OrdersItem";
 
 import * as Notifications from 'expo-notifications';
 import { useNavigation } from "@react-navigation/native";
 import { useSelector } from "react-redux";
 import { selectUser } from "../redux/slices/authSlice";
+import { getOrder } from "../services/apiService";
+import { UserOrder, Customer, Restaurant, OrderDetail } from "../services/types";
 
 
 Notifications.setNotificationHandler({

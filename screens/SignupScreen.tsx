@@ -39,7 +39,7 @@ const SignupScreen: React.FC = () => {
   });
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [role, setRole] = useState<'client' | 'restaurant'>('client');
+  const [role, setRole] = useState<'restaurant' | 'entregador' | 'parceiro'>('restaurant');
 
   const handleInputChange = (name: string, value: string) => {
     setSignupData(prev => ({ ...prev, [name]: value }));
@@ -74,7 +74,7 @@ const SignupScreen: React.FC = () => {
       if (status === 200 || status === 201) {
         dispatch(loginUser(data));
         Alert.alert("Sucesso", "Você se cadastrou com sucesso.");
-        navigation.navigate(role === 'restaurant' ? 'RestaurantDashboard' : 'HomeScreen');
+        navigation.navigate(role === 'restaurant' ? 'RestaurantDashboard' : role === 'entregador' ? 'EntregadorDashboard' : 'ParceiroDashboard');
       } else {
         Alert.alert("Falha no Cadastro", data.message || "Por favor, tente novamente.");
       }
@@ -119,6 +119,17 @@ const SignupScreen: React.FC = () => {
             <Text style={styles.signupText}>Faça login aqui</Text>
           </Text>
         </TouchableOpacity>
+        <View style={styles.roleSelection}>
+          <TouchableOpacity onPress={() => setRole('restaurant')} style={getRoleButtonStyle(role === 'restaurant')}>
+            <Text style={styles.roleButtonText}>Restaurante</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => setRole('entregador')} style={getRoleButtonStyle(role === 'entregador')}>
+            <Text style={styles.roleButtonText}>Entregador</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => setRole('parceiro')} style={getRoleButtonStyle(role === 'parceiro')}>
+            <Text style={styles.roleButtonText}>Parceiro</Text>
+          </TouchableOpacity>
+        </View>
         <View style={styles.inputContainer}>
           <TextInput
             placeholder="Nome de usuário"

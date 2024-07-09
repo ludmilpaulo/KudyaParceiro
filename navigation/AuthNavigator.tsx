@@ -17,7 +17,6 @@ export default function AuthNavigator() {
     >
       <Stack.Screen name="Join" component={JoinScreen} />
       <Stack.Screen name="UserLogin" component={LoginScreenUser} />
-   
       <Stack.Screen name="SignupScreen" component={SignupScreen} />
     </Stack.Navigator>
   );
