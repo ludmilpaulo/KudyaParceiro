@@ -1,15 +1,13 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { View, Text, TextInput, TouchableOpacity, ActivityIndicator, Alert, Image, StyleSheet } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { useDispatch } from "react-redux";
-import tailwind from "tailwind-react-native-classnames";
 import { Eye, EyeOff } from "react-native-feather";
-
 import { LinearGradient } from "expo-linear-gradient";
 import { MotiView } from 'moti';
+import { loginUserService } from "../services/authService";
 import { loginUser } from "../redux/slices/authSlice";
 import ForgotPasswordModal from "../components/ForgotPasswordModal";
-import { loginUserService } from "../services/authService";
 
 const LoginScreenUser = () => {
   const navigation = useNavigation<any>();
@@ -25,14 +23,14 @@ const LoginScreenUser = () => {
     setShowForgotPasswordModal(prev => !prev);
   };
 
-
   const handleSubmit = async () => {
     setLoading(true);
     try {
       const response = await loginUserService(username, password);
+      console.log("response",response)
       dispatch(loginUser(response));  // Assume loginUser action updates the Redux state accordingly
       Alert.alert("Sucesso", "Você se conectou com sucesso!");
-      navigation.navigate(response.is_customer ? "HomeScreen" : "RestaurantDashboard");
+     // navigation.navigate(response.is_customer ? "HomeScreen" : "RestaurantDashboard");
     } catch (error) {
       console.error(error);
       Alert.alert("Erro", "Falha ao entrar. Por favor, tente novamente.");
@@ -54,7 +52,7 @@ const LoginScreenUser = () => {
         style={styles.formContainer}
       >
         <View style={styles.imageContainer}>
-        <Image source={require("../assets/azul.png")} style={styles.logo} />
+          <Image source={require("../assets/azul.png")} style={styles.logo} />
         </View>
         <Text style={styles.title}>Faça login na sua conta</Text>
         <TouchableOpacity onPress={() => navigation.navigate("SignupScreen")}>
@@ -87,8 +85,8 @@ const LoginScreenUser = () => {
           </TouchableOpacity>
         </View>
         <TouchableOpacity onPress={toggleForgotPasswordModal}>
-        <Text style={styles.forgotPasswordLink}>Esqueceu a senha?</Text>
-      </TouchableOpacity>
+          <Text style={styles.forgotPasswordLink}>Esqueceu a senha?</Text>
+        </TouchableOpacity>
         <TouchableOpacity
           onPress={handleSubmit}
           style={styles.loginButton}
@@ -102,7 +100,7 @@ const LoginScreenUser = () => {
           <ActivityIndicator size="large" color="#FFFFFF" />
         </View>
       )}
-       <ForgotPasswordModal show={showForgotPasswordModal} onClose={toggleForgotPasswordModal} />
+      <ForgotPasswordModal show={showForgotPasswordModal} onClose={toggleForgotPasswordModal} />
     </LinearGradient>
   );
 };

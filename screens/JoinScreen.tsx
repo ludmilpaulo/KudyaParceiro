@@ -61,10 +61,10 @@ const JoinScreen = () => {
       ) : headerData && (
         <Banner
           title={headerData.title}
-          backgroundImage={headerData.backgroundImage}
-          backgroundApp={headerData.backgroundApp}
-          bottomImage={headerData.bottomImage}
-          aboutText={headerData.about}
+          backgroundImage={headerData?.backgroundImage}
+          backgroundApp={headerData?.backgroundApp}
+          bottomImage={headerData?.bottomImage}
+          aboutText={headerData?.about}
           restaurants={restaurants}
           userLocation={userLocation}
         />

@@ -9,10 +9,11 @@ import { MotiView } from 'moti';
 import { loginUser } from "../redux/slices/authSlice"; // Ensure correct path
 import * as ImagePicker from 'expo-image-picker';
 
-interface SignupData {
+export interface SignupData {
   username: string;
   email: string;
   password: string;
+  password2?: string;
   name?: string;
   phone?: string;
   address?: string;
@@ -36,6 +37,7 @@ const SignupScreen: React.FC = () => {
     username: '',
     email: '',
     password: '',
+    password2: '',
   });
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -68,7 +70,8 @@ const SignupScreen: React.FC = () => {
     
     setLoading(true);
     try {
-      const { status, data } = await signup(role, signupData);
+      const dataToSend = { ...signupData, password2: signupData.password }; // Ensure password2 is the same as password
+      const { status, data } = await signup(role, dataToSend);
       console.log("Received", data);
 
       if (status === 200 || status === 201) {
