@@ -18,10 +18,16 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/azul.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "package": "com.ludmil.KudyaParceiro"
     },
     "web": {
       "favicon": "./assets/azul.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "f848ca4d-cf74-4e6b-b42d-107d533158b8"
+      }
     }
   }
 }
