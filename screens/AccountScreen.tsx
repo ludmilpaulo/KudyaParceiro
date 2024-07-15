@@ -1,12 +1,9 @@
-import React from 'react'
-import { View } from 'react-native'
+import React from 'react';
+import AccountDrawerNavigator from '../navigation/AccountDrawerNavigator';
 
-type Props = {}
 
-const AccountScreen = (props: Props) => {
-  return (
-    <View></View>
-  )
-}
+const AccountScreen = () => {
+  return <AccountDrawerNavigator />;
+};
 
-export default AccountScreen
+export default AccountScreen;

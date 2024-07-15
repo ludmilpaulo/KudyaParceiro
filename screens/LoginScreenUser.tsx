@@ -27,10 +27,18 @@ const LoginScreenUser = () => {
     setLoading(true);
     try {
       const response = await loginUserService(username, password);
-      console.log("response",response)
+      console.log("response", response);
       dispatch(loginUser(response));  // Assume loginUser action updates the Redux state accordingly
       Alert.alert("Sucesso", "Você se conectou com sucesso!");
-     // navigation.navigate(response.is_customer ? "HomeScreen" : "RestaurantDashboard");
+  
+      // Navigate based on the response
+      if (response.is_customer) {
+        navigation.navigate("ParceiroDashboard");
+      } else if (response.is_driver) {
+        navigation.navigate("EntregadorDashboard");
+      } else {
+        navigation.navigate("RestaurantDashboard");
+      }
     } catch (error) {
       console.error(error);
       Alert.alert("Erro", "Falha ao entrar. Por favor, tente novamente.");
@@ -38,6 +46,7 @@ const LoginScreenUser = () => {
       setLoading(false);
     }
   };
+  
 
   const togglePasswordVisibility = () => {
     setShowPassword(prevState => !prevState);

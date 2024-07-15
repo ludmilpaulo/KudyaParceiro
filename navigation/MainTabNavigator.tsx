@@ -1,9 +1,7 @@
 import React from "react";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import { createStackNavigator } from "@react-navigation/stack";
 import { Feather, Ionicons, AntDesign } from "@expo/vector-icons";
-import { useSelector } from "react-redux";
-import { View, Text, StyleSheet } from "react-native";
+import { View, StyleSheet } from "react-native";
 import { BottomTabBar } from "@react-navigation/bottom-tabs";
 import { LinearGradient } from "expo-linear-gradient";
 import EntregadorDashboard from "../screens/EntregadorDashboard";
@@ -11,14 +9,10 @@ import UserProfile from "../screens/UserProfile";
 import RestaurantMap from "../screens/RestaurantMap";
 import CustomerDelivery from "../screens/CustomerDelivery";
 import AccountScreen from "../screens/AccountScreen";
-import { RootState } from "../redux/store"; // Adjust the import path according to your project structure
 
 const Tab = createBottomTabNavigator();
-const Stack = createStackNavigator();
-
 
 const MainTabNavigator = () => {
-  
   return (
     <Tab.Navigator
       screenOptions={{
