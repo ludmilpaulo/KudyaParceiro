@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, View, Text, TouchableOpacity, Alert, Linking, Image, ActivityIndicator, Modal } from 'react-native';
+import { StyleSheet, View, Text, TouchableOpacity, Alert, Linking, ActivityIndicator, Modal } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
 import * as Location from 'expo-location';
-import { useRoute, useNavigation } from '@react-navigation/native';
+import { useRoute, useNavigation, RouteProp } from '@react-navigation/native';
 import { UserOrder } from '../services/ordertypes';
 import { calculateDistance } from '../utils/distance';
 import { baseAPI } from '../services/types';
@@ -10,10 +10,17 @@ import { fetchVerifiedOrder } from '../services/driverService';
 import { useSelector } from 'react-redux';
 import { selectUser } from '../redux/slices/authSlice';
 import ChatComponent from '../components/ChatComponent'; // Adjust the import path accordingly
-import { Avatar, Button, Modal as PaperModal, Portal, Provider } from 'react-native-paper';
+import { Avatar, Button } from 'react-native-paper';
+
+// Define the route params type
+type RootStackParamList = {
+  CustomerDelivery: { order: UserOrder };
+};
+
+type CustomerDeliveryRouteProp = RouteProp<RootStackParamList, 'CustomerDelivery'>;
 
 const CustomerDelivery = () => {
-  const route = useRoute();
+  const route = useRoute<CustomerDeliveryRouteProp>();
   const navigation = useNavigation();
   const user = useSelector(selectUser);
   const [order, setOrder] = useState<UserOrder | null>(route.params?.order || null);
@@ -26,7 +33,9 @@ const CustomerDelivery = () => {
   useEffect(() => {
     const checkVerifiedOrder = async () => {
       try {
+        console.log("Fetching verified order for user:", user);
         const result = await fetchVerifiedOrder(user.token);
+        console.log("Verified order fetched:", result);
         if (result.status === "success" && result.order) {
           setOrder(result.order);
         }
@@ -50,6 +59,7 @@ const CustomerDelivery = () => {
           return;
         }
         const location = await Location.getCurrentPositionAsync({});
+        console.log("Current location obtained:", location);
         setCurrentLocation(location);
 
         const customerLocation = order?.customer.location;
@@ -65,11 +75,13 @@ const CustomerDelivery = () => {
               { latitude: location.coords.latitude, longitude: location.coords.longitude },
               { latitude, longitude }
             );
+            console.log("Distance to customer:", distanceToCustomer);
             setDistance(distanceToCustomer);
 
             const averageSpeedKmh = 50; // Average speed in km/h
             const timeInHours = distanceToCustomer / averageSpeedKmh;
             const timeInMinutes = timeInHours * 60;
+            console.log("Estimated time to customer:", timeInMinutes);
             setEstimatedTime(timeInMinutes);
           } else {
             Alert.alert("Erro", "Endereço do cliente inválido.");
@@ -106,7 +118,13 @@ const CustomerDelivery = () => {
   };
 
   const openChat = () => {
+    console.log("Opening chat modal");
     setChatVisible(true);
+  };
+
+  const closeChat = () => {
+    console.log("Closing chat modal");
+    setChatVisible(false);
   };
 
   const makeCall = (phone: string) => {
@@ -122,66 +140,71 @@ const CustomerDelivery = () => {
   }
 
   return (
-    <Provider>
-      <View style={styles.container}>
-        <MapView
-          style={styles.map}
-          initialRegion={{
-            latitude,
-            longitude,
-            latitudeDelta: 0.01,
-            longitudeDelta: 0.01,
-          }}
-        >
-          <Marker
-            coordinate={{ latitude, longitude }}
-            title="Cliente"
-            description={order.address || order.customer.address}
-          />
-        </MapView>
-        <View style={styles.detailsContainer}>
-          <Text style={styles.title}>Entregar para</Text>
-          <View style={styles.customerInfo}>
-            <Avatar.Image size={50} source={{ uri: `${baseAPI}${order.customer.avatar}` }} style={styles.avatar} />
-            <View>
-              <Text style={styles.customerName}>{order.customer.name}</Text>
-              <TouchableOpacity onPress={() => makeCall(order.customer.phone)}>
-                <Text style={styles.phone}>{order.customer.phone}</Text>
-              </TouchableOpacity>
-            </View>
+    <View style={styles.container}>
+      <MapView
+        style={styles.map}
+        initialRegion={{
+          latitude,
+          longitude,
+          latitudeDelta: 0.01,
+          longitudeDelta: 0.01,
+        }}
+      >
+        <Marker
+          coordinate={{ latitude, longitude }}
+          title="Cliente"
+          description={order.address || order.customer.address}
+        />
+      </MapView>
+      <View style={styles.detailsContainer}>
+        <Text style={styles.title}>Entregar para</Text>
+        <View style={styles.customerInfo}>
+          <Avatar.Image size={50} source={{ uri: `${baseAPI}${order.customer.avatar}` }} style={styles.avatar} />
+          <View>
+            <Text style={styles.customerName}>{order.customer.name}</Text>
+            <TouchableOpacity onPress={() => makeCall(order.customer.phone)}>
+              <Text style={styles.phone}>{order.customer.phone}</Text>
+            </TouchableOpacity>
           </View>
-          <Text style={styles.address}>{order.address || order.customer.address}</Text>
-          {distance !== null && (
-            <>
-              <Text style={styles.distance}>Distância: {distance.toFixed(2)} km</Text>
-              <Text style={styles.estimatedTime}>Tempo estimado: {estimatedTime?.toFixed(0)} minutos</Text>
-            </>
-          )}
-          <Button mode="contained" onPress={openGoogleMaps} style={styles.directionsButton}>
-            Obter direções no Google Maps
-          </Button>
-          <Button mode="contained" onPress={() => Alert.alert("Pedido entregue", "O pedido foi entregue ao cliente.")} style={styles.completeButton}>
-            Completar Entrega
-          </Button>
-          <Button mode="contained" onPress={openChat} style={styles.chatButton}>
-            Chat com Cliente
-          </Button>
         </View>
-        <Portal>
-          <PaperModal visible={chatVisible} onDismiss={() => setChatVisible(false)} contentContainerStyle={styles.chatModalContent}>
+        <Text style={styles.address}>{order.address || order.customer.address}</Text>
+        {distance !== null && (
+          <>
+            <Text style={styles.distance}>Distância: {distance.toFixed(2)} km</Text>
+            <Text style={styles.estimatedTime}>Tempo estimado: {estimatedTime?.toFixed(0)} minutos</Text>
+          </>
+        )}
+        <Button mode="contained" onPress={openGoogleMaps} style={styles.directionsButton}>
+          Obter direções no Google Maps
+        </Button>
+        <Button mode="contained" onPress={() => Alert.alert("Pedido entregue", "O pedido foi entregue ao cliente.")} style={styles.completeButton}>
+          Completar Entrega
+        </Button>
+        <Button mode="contained" onPress={openChat} style={styles.chatButton}>
+          Chat com Cliente
+        </Button>
+      </View>
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={chatVisible}
+        onRequestClose={closeChat}
+      >
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
             <ChatComponent
               user="driver"
               accessToken={user.token}
-              orderId={order.id}
+              orderId={order.id.toString()} // Convert order.id to string here
               userData={user}
             />
-            <Button onPress={() => setChatVisible(false)} style={styles.closeButton}>
+            <Button onPress={closeChat} style={styles.closeButton}>
               Fechar Chat
             </Button>
-          </PaperModal>
-        </Portal>
-      </View>
-    </Provider>
+          </View>
+        </View>
+      </Modal>
+    </View>
   );
 };
 
@@ -245,10 +268,18 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  chatModalContent: {
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.5)',
+  },
+  modalContent: {
     width: '90%',
-    backgroundColor: 'white',
+    height: '80%',
+    backgroundColor: '#fff',
     borderRadius: 10,
+    overflow: 'hidden',
     padding: 20,
   },
   closeButton: {
