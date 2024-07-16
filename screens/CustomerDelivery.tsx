@@ -1,17 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, View, Text, TouchableOpacity, Alert, Linking, ActivityIndicator, Modal, TextInput } from 'react-native';
+import { StyleSheet, View, Text, TouchableOpacity, Alert, Linking, ActivityIndicator, Modal } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
 import * as Location from 'expo-location';
 import { useRoute, useNavigation, RouteProp } from '@react-navigation/native';
 import { UserOrder } from '../services/ordertypes';
 import { calculateDistance } from '../utils/distance';
 import { baseAPI } from '../services/types';
-import { fetchVerifiedOrder, updateDriverLocation } from '../services/driverService';
+import { fetchVerifiedOrder } from '../services/driverService';
 import { useSelector } from 'react-redux';
 import { selectUser } from '../redux/slices/authSlice';
 import ChatComponent from '../components/ChatComponent'; // Adjust the import path accordingly
 import { Avatar, Button } from 'react-native-paper';
-import axios from 'axios';
 
 // Define the route params type
 type RootStackParamList = {
@@ -22,7 +21,7 @@ type CustomerDeliveryRouteProp = RouteProp<RootStackParamList, 'CustomerDelivery
 
 const CustomerDelivery = () => {
   const route = useRoute<CustomerDeliveryRouteProp>();
-  const navigation = useNavigation<any>();
+  const navigation = useNavigation();
   const user = useSelector(selectUser);
   const [order, setOrder] = useState<UserOrder | null>(route.params?.order || null);
   const [currentLocation, setCurrentLocation] = useState<Location.LocationObject | null>(null);
@@ -30,9 +29,6 @@ const CustomerDelivery = () => {
   const [estimatedTime, setEstimatedTime] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [chatVisible, setChatVisible] = useState(false);
-  const [pin, setPin] = useState('');
-  const [pinModalVisible, setPinModalVisible] = useState(false);
-  const [location, setLocation] = useState<Location.LocationObject | null>(null);
 
   useEffect(() => {
     const checkVerifiedOrder = async () => {
@@ -135,30 +131,6 @@ const CustomerDelivery = () => {
     Linking.openURL(`tel:${phone}`);
   };
 
-  const handleCompleteDelivery = () => {
-    setPinModalVisible(true);
-  };
-
-  const submitPin = async () => {
-    try {
-      const response = await axios.post(`${baseAPI}/driver/order/complete/`, {
-        access_token: user.token,
-        order_id: order?.id,
-        secret_pin: pin,
-      });
-      if (response.data.status === 'success') {
-        Alert.alert("Pedido entregue", "O pedido foi entregue ao cliente.");
-        setPinModalVisible(false);
-        navigation.navigate("EntregadorDashboard");
-      } else {
-        Alert.alert("Erro", "PIN incorreto. Tente novamente.");
-      }
-    } catch (error) {
-      console.error("Erro ao completar pedido:", error);
-      Alert.alert("Erro", "Não foi possível completar o pedido. Tente novamente.");
-    }
-  };
-
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
@@ -166,16 +138,6 @@ const CustomerDelivery = () => {
       </View>
     );
   }
-
-  const updateLocation = async () => {
-    try {
-      const currentLocation = await Location.getCurrentPositionAsync({});
-      setLocation(currentLocation);
-      await updateDriverLocation(user?.user_id, user?.token, currentLocation.coords.latitude, currentLocation.coords.longitude);
-    } catch (error) {
-      console.error("Erro ao atualizar localização do motorista:", error);
-    }
-  };
 
   return (
     <View style={styles.container}>
@@ -215,7 +177,7 @@ const CustomerDelivery = () => {
         <Button mode="contained" onPress={openGoogleMaps} style={styles.directionsButton}>
           Obter direções no Google Maps
         </Button>
-        <Button mode="contained" onPress={handleCompleteDelivery} style={styles.completeButton}>
+        <Button mode="contained" onPress={() => Alert.alert("Pedido entregue", "O pedido foi entregue ao cliente.")} style={styles.completeButton}>
           Completar Entrega
         </Button>
         <Button mode="contained" onPress={openChat} style={styles.chatButton}>
@@ -238,32 +200,6 @@ const CustomerDelivery = () => {
             />
             <Button onPress={closeChat} style={styles.closeButton}>
               Fechar Chat
-            </Button>
-          </View>
-        </View>
-      </Modal>
-      <Modal
-        animationType="slide"
-        transparent={true}
-        visible={pinModalVisible}
-        onRequestClose={() => setPinModalVisible(false)}
-      >
-        <View style={styles.modalContainer}>
-          <View style={styles.modalContent}>
-            <Text style={styles.pinPrompt}>Insira o PIN secreto para completar a entrega:</Text>
-            <TextInput
-              style={styles.pinInput}
-              value={pin}
-              onChangeText={setPin}
-              keyboardType="numeric"
-              placeholder="PIN Secreto"
-              secureTextEntry
-            />
-            <Button mode="contained" onPress={submitPin} style={styles.submitPinButton}>
-              Enviar PIN
-            </Button>
-            <Button onPress={() => setPinModalVisible(false)} style={styles.closeButton}>
-              Cancelar
             </Button>
           </View>
         </View>
@@ -348,21 +284,6 @@ const styles = StyleSheet.create({
   },
   closeButton: {
     marginTop: 20,
-  },
-  pinPrompt: {
-    fontSize: 18,
-    marginBottom: 10,
-  },
-  pinInput: {
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 5,
-    padding: 10,
-    marginBottom: 20,
-    width: '100%',
-  },
-  submitPinButton: {
-    marginBottom: 10,
   },
 });
 

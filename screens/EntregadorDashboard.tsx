@@ -1,5 +1,5 @@
-import { SafeAreaView, ScrollView, StyleSheet, Text, Vibration, View, ActivityIndicator, Switch, Alert } from "react-native";
 import React, { useEffect, useState, useRef } from "react";
+import { SafeAreaView, ScrollView, StyleSheet, Text, Vibration, View, ActivityIndicator, Switch, Alert } from "react-native";
 import OrdersItem from "../components/OrdersItem";
 import * as Notifications from 'expo-notifications';
 import { useNavigation } from "@react-navigation/native";
