@@ -95,18 +95,23 @@ export const addProduct = async (formData: FormData): Promise<Product> => {
   };
   
 
-export const deleteProduct = async (productId: number, userId: number): Promise<void> => {
-  const response = await fetch(`${baseAPI}/restaurant/delete-product/${productId}`, {
-    method: "DELETE",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ user_id: userId }),
-  });
-  if (!response.ok) {
-    throw new Error("Failed to delete product");
-  }
-};
+  
+  export const deleteProduct = async (productId: number, userId: number): Promise<void> => {
+    try {
+      const response = await axios.delete(`${baseAPI}/restaurant/delete-product/${productId}/`, {
+        data: {
+          user_id: userId
+        }
+      });
+      if (response.status !== 204) {
+        throw new Error("Failed to delete product");
+      }
+    } catch (error:any) {
+      console.error('Error deleting product:', error.response?.data || error.message);
+      throw error;
+    }
+  };
+  
 
 
 export const fetchOrders = async (userId: number): Promise<OrderTypes[]> => {

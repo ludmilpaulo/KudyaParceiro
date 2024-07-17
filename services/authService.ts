@@ -38,7 +38,6 @@ export const signup = async (role: string, data: SignupData) => {
 
 
 
-
 export const loginUserService = async (username: string, password: string) => {
   const response = await fetch(`${baseAPI}/conta/login/`, {
     method: 'POST',
@@ -50,9 +49,10 @@ export const loginUserService = async (username: string, password: string) => {
   });
 
   const responseData = await response.json();
+  console.log("response data", responseData)
 
   if (!response.ok) {
-    throw new Error(responseData.detail || 'Falha ao entrar. Por favor, tente novamente.');
+    throw new Error(responseData.message || 'Falha ao entrar. Por favor, tente novamente.');
   }
 
   return responseData;

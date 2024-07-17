@@ -3,8 +3,8 @@ import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-nati
 import { Picker } from '@react-native-picker/picker';
 import Checkbox from 'expo-checkbox';
 import tailwind from 'twrnc';
-import { OpeningHourType } from '../services/types';
-import { createOpeningHour } from '../services/apiService';
+import { OpeningHourType } from '../../services/types';
+import { createOpeningHour } from '../../services/apiService';
 
 const validTimes = Array.from({ length: 24 }, (_, h) =>
   [`${h % 12 === 0 ? 12 : h % 12 < 10 ? `0${h % 12}` : h % 12}:00 ${h < 12 ? 'AM' : 'PM'}`, `${h % 12 === 0 ? 12 : h % 12 < 10 ? `0${h % 12}` : h % 12}:30 ${h < 12 ? 'AM' : 'PM'}`]
@@ -55,7 +55,7 @@ const OpeningHour: React.FC<OpeningHourProps> = ({ restaurantId, openingHours, s
       <ScrollView style={tailwind`mt-2`}>
         {openingHours.map((hour, index) => (
           <View key={index} style={tailwind`flex flex-row justify-between`}>
-            <Text>{['Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado'][hour.day - 1]}</Text>
+            <Text>{['Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado'][hour.day]}</Text>
             <Text>{hour.is_closed ? 'Fechado' : `${hour.from_hour} - ${hour.to_hour}`}</Text>
           </View>
         ))}

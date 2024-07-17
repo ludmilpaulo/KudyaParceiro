@@ -1,20 +1,23 @@
-import React, { useState } from "react";
-import { View, Text, TextInput, TouchableOpacity, ActivityIndicator, Alert, Image, StyleSheet } from "react-native";
-import { useNavigation } from "@react-navigation/native";
-import { useDispatch } from "react-redux";
-import { Eye, EyeOff } from "react-native-feather";
-import { LinearGradient } from "expo-linear-gradient";
+// screens/LoginScreenUser.tsx
+import React, { useState } from 'react';
+import { View, Text, TextInput, TouchableOpacity, ActivityIndicator, Alert, Image, StyleSheet } from 'react-native';
+import { useNavigation, NavigationProp } from '@react-navigation/native';
+import { useDispatch } from 'react-redux';
+import { Eye, EyeOff } from 'react-native-feather';
+import { LinearGradient } from 'expo-linear-gradient';
 import { MotiView } from 'moti';
-import { loginUserService } from "../services/authService";
-import { loginUser } from "../redux/slices/authSlice";
-import ForgotPasswordModal from "../components/ForgotPasswordModal";
+import { loginUserService } from '../services/authService';
+import { loginUser } from '../redux/slices/authSlice';
+import ForgotPasswordModal from '../components/ForgotPasswordModal';
+import { RootStackParamList } from '../services/types';
+
 
 const LoginScreenUser = () => {
-  const navigation = useNavigation<any>();
+  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const dispatch = useDispatch();
 
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [showForgotPasswordModal, setShowForgotPasswordModal] = useState(false);
@@ -27,26 +30,28 @@ const LoginScreenUser = () => {
     setLoading(true);
     try {
       const response = await loginUserService(username, password);
-      console.log("response", response);
-      dispatch(loginUser(response));  // Assume loginUser action updates the Redux state accordingly
-      Alert.alert("Sucesso", "Você se conectou com sucesso!");
-  
+      console.log('Response received:', response);
+      dispatch(loginUser(response)); // Assume loginUser action updates the Redux state accordingly
+      Alert.alert('Sucesso', 'Você se conectou com sucesso!');
+
+      console.log('is_customer:', response.is_customer);
+      console.log('is_driver:', response.is_driver);
+
       // Navigate based on the response
-      if (response.is_customer) {
-        navigation.navigate("ParceiroDashboard");
-      } else if (response.is_driver) {
-        navigation.navigate("EntregadorDashboard");
+      if (response.is_driver) {
+        navigation.navigate('HomeNavigator');
+      } else if (!response.is_customer && !response.is_driver) {
+        navigation.navigate('RestaurantDrawer');
       } else {
-        navigation.navigate("RestaurantDashboard");
+        // Default or other role navigation if necessary
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
-      Alert.alert("Erro", "Falha ao entrar. Por favor, tente novamente.");
+      Alert.alert('Erro', error.message || 'Falha ao entrar. Por favor, tente novamente.');
     } finally {
       setLoading(false);
     }
   };
-  
 
   const togglePasswordVisibility = () => {
     setShowPassword(prevState => !prevState);
@@ -61,18 +66,17 @@ const LoginScreenUser = () => {
         style={styles.formContainer}
       >
         <View style={styles.imageContainer}>
-          <Image source={require("../assets/azul.png")} style={styles.logo} />
+          <Image source={require('../assets/azul.png')} style={styles.logo} />
         </View>
         <Text style={styles.title}>Faça login na sua conta</Text>
-        <TouchableOpacity onPress={() => navigation.navigate("SignupScreen")}>
+        <TouchableOpacity onPress={() => navigation.navigate('SignupScreen')}>
           <Text style={styles.signupLink}>
-            Não tem uma conta?{" "}
-            <Text style={styles.signupText}>Cadastre-se aqui</Text>
+            Não tem uma conta? <Text style={styles.signupText}>Cadastre-se aqui</Text>
           </Text>
         </TouchableOpacity>
         <View style={styles.inputContainer}>
           <TextInput
-            placeholder="Nome do usuário"
+            placeholder='Nome do usuário'
             value={username}
             onChangeText={setUsername}
             style={styles.input}
@@ -81,32 +85,25 @@ const LoginScreenUser = () => {
         <View style={styles.inputContainer}>
           <TextInput
             value={password}
-            placeholder="Digite sua senha"
+            placeholder='Digite sua senha'
             onChangeText={setPassword}
             secureTextEntry={!showPassword}
             style={styles.input}
           />
-          <TouchableOpacity
-            onPress={togglePasswordVisibility}
-            style={styles.eyeIcon}
-          >
-            {showPassword ? <EyeOff width={20} height={20} color="#040405" /> : <Eye width={20} height={20} color="#040405"/>}
+          <TouchableOpacity onPress={togglePasswordVisibility} style={styles.eyeIcon}>
+            {showPassword ? <EyeOff width={20} height={20} color='#040405' /> : <Eye width={20} height={20} color='#040405' />}
           </TouchableOpacity>
         </View>
         <TouchableOpacity onPress={toggleForgotPasswordModal}>
           <Text style={styles.forgotPasswordLink}>Esqueceu a senha?</Text>
         </TouchableOpacity>
-        <TouchableOpacity
-          onPress={handleSubmit}
-          style={styles.loginButton}
-          disabled={loading}
-        >
+        <TouchableOpacity onPress={handleSubmit} style={styles.loginButton} disabled={loading}>
           <Text style={styles.loginButtonText}>Entrar</Text>
         </TouchableOpacity>
       </MotiView>
       {loading && (
         <View style={styles.loadingOverlay}>
-          <ActivityIndicator size="large" color="#FFFFFF" />
+          <ActivityIndicator size='large' color='#FFFFFF' />
         </View>
       )}
       <ForgotPasswordModal show={showForgotPasswordModal} onClose={toggleForgotPasswordModal} />
@@ -130,35 +127,35 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 5,
     shadowColor: '#000',
-    shadowOffset: { height: 0, width: 0 }
+    shadowOffset: { height: 0, width: 0 },
   },
   imageContainer: {
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 20
+    marginBottom: 20,
   },
   logo: {
     width: 100,
-    height: 100
+    height: 100,
   },
   title: {
     fontSize: 20,
     fontWeight: 'bold',
     textAlign: 'center',
-    marginBottom: 20
+    marginBottom: 20,
   },
   signupLink: {
     fontSize: 16,
     textAlign: 'center',
     color: '#555',
-    marginBottom: 20
+    marginBottom: 20,
   },
   signupText: {
     color: '#0077cc',
-    textDecorationLine: 'underline'
+    textDecorationLine: 'underline',
   },
   inputContainer: {
-    marginBottom: 10
+    marginBottom: 10,
   },
   input: {
     fontSize: 16,
@@ -167,19 +164,19 @@ const styles = StyleSheet.create({
     borderColor: '#ccc',
     borderWidth: 1,
     borderRadius: 8,
-    width: '100%'
+    width: '100%',
   },
   eyeIcon: {
     position: 'absolute',
     right: 10,
     top: 12,
-    padding: 10
+    padding: 10,
   },
   forgotPasswordLink: {
     textAlign: 'right',
     color: '#0077cc',
     textDecorationLine: 'underline',
-    marginBottom: 20
+    marginBottom: 20,
   },
   loginButton: {
     backgroundColor: '#0077cc',
@@ -187,23 +184,19 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     alignItems: 'center',
     justifyContent: 'center',
-    height: 50
+    height: 50,
   },
   loginButtonText: {
     color: 'white',
     fontSize: 16,
-    fontWeight: 'bold'
+    fontWeight: 'bold',
   },
   loadingOverlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
+    ...StyleSheet.absoluteFillObject,
     backgroundColor: 'rgba(0,0,0,0.5)',
     justifyContent: 'center',
-    alignItems: 'center'
-  }
+    alignItems: 'center',
+  },
 });
 
 export default LoginScreenUser;

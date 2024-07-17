@@ -1,20 +1,20 @@
+// screens/RestaurantDashboard.tsx
 import React, { useEffect, useState } from 'react';
-import { View, Text, Button, ActivityIndicator, StyleSheet } from 'react-native';
+import { View, Text, ActivityIndicator, StyleSheet } from 'react-native';
 import { useSelector } from 'react-redux';
 import * as Location from 'expo-location';
 import { selectUser } from '../redux/slices/authSlice';
 import { fetchFornecedorData, updateLocation } from '../services/apiService';
 import { FornecedorType } from '../services/types';
 import tailwind from 'twrnc'; // Correct import for tailwind
-import Sidebar from '../components/Sidebar';
 import Screen from '../components/Screen';
+import { LinearGradient } from 'expo-linear-gradient';
 
 const RestaurantDashboard: React.FC = () => {
   const user = useSelector(selectUser);
   const [fornecedor, setFornecedor] = useState<FornecedorType | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -25,6 +25,7 @@ const RestaurantDashboard: React.FC = () => {
           setFornecedor(data);
         } catch (error) {
           setError('Ocorreu um erro ao buscar os dados');
+          console.error('Fetch Fornecedor Data Error:', error); // Debugging statement
         } finally {
           setLoading(false);
         }
@@ -70,36 +71,30 @@ const RestaurantDashboard: React.FC = () => {
     return () => clearInterval(intervalId);
   }, [user]);
 
-  const handleSidebarToggle = () => {
-    setIsSidebarOpen(!isSidebarOpen);
-  };
-
   return (
-    <Screen>
-      {loading && (
-        <View style={styles.loadingOverlay}>
-          <ActivityIndicator size="large" color="#0000ff" />
-        </View>
-      )}
-      {error && <Text style={tailwind`text-red-500`}>{error}</Text>}
-      {!loading && !error && (
-        <>
-          <View style={tailwind`justify-center items-center`}>
-              <Button
-                onPress={handleSidebarToggle}
-                title="Menu"
-                color="#12e27a"
-                accessibilityLabel="Abrir Menu"
-              />
+    <LinearGradient colors={['#FCB61A', '#0171CE']} style={styles.container}>
+      <Screen>
+        {loading && (
+          <View style={styles.loadingOverlay}>
+            <ActivityIndicator size="large" color="#FFF" />
           </View>
-          <Sidebar fornecedor={fornecedor} isOpen={isSidebarOpen} onToggle={handleSidebarToggle} />
-        </>
-      )}
-    </Screen>
+        )}
+        {error && <Text style={tailwind`text-red-500`}>{error}</Text>}
+        {!loading && !error && fornecedor && (
+          <View style={tailwind`p-4`}>
+            <Text style={tailwind`text-2xl font-bold text-white`}>Bem-vindo, {fornecedor.name}!</Text>
+            {/* Add additional content here */}
+          </View>
+        )}
+      </Screen>
+    </LinearGradient>
   );
 };
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
   loadingOverlay: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: 'rgba(0,0,0,0.5)',

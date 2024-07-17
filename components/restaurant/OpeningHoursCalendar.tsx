@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, FlatList, StyleSheet } from 'react-native';
-import { OpeningHourType } from '../services/types';
+import { OpeningHourType } from '../../services/types';
 
 import { addDays, startOfWeek } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import tailwind from 'twrnc';
-import { getOpeningHours } from '../services/apiService';
+import { getOpeningHours } from '../../services/apiService';
 
 interface OpeningHoursCalendarProps {
   restaurantId: number;

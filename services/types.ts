@@ -1,7 +1,7 @@
 //export const baseAPI: string = "http://127.0.0.1:8000";
-//export const baseAPI: string = "https://www.kudya.shop";
+export const baseAPI: string = "https://www.kudya.shop";
 
-export const baseAPI: string = "http://192.168.1.108:8000";
+//export const baseAPI: string = "http://192.168.1.108:8000";
 
 
 
@@ -47,10 +47,20 @@ export type UserDetails = {
     customer: {
       name: string;
     };
-    driver: string | null;
+    driver: {
+      name: string;
+    };
     total: number;
     status: string;
   }
+
+  export interface ImageType {
+    uri: string;
+    name?: string;
+    type?: string;
+  }
+  
+
   
 
   export type Product = {
@@ -58,7 +68,8 @@ export type UserDetails = {
     id?: number;
     name: string;
     short_description: string;
-    image: string;
+    image?: ImageType[]; // Ensure image is an array of ImageType
+   // image: string;
     price: string;
     category: string | number;
     // Add other fields if necessary...
@@ -255,3 +266,21 @@ export interface Order {
   status: string;
   address: string;
 }
+
+
+// types/navigation.ts
+export type RootStackParamList = {
+  AuthNavigator: undefined;
+  HomeNavigator: undefined;
+  RestaurantDrawer: undefined;
+  LoginScreenUser: undefined;
+  SignupScreen: undefined;
+  ParceiroDashboard: undefined;
+  EntregadorDashboard: undefined;
+  RestaurantDashboard: undefined;
+  UserProfile: undefined;
+  RestaurantMap: undefined;
+  CustomerDelivery: undefined;
+  HomeScreen:undefined;
+};
+

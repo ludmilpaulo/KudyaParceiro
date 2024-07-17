@@ -161,7 +161,7 @@ const EntregadorDashboard = () => {
       return;
     }
 
-    const token = (await Notifications.getExpoPushTokenAsync({ projectId: 'your-expo-project-id' })).data;
+    const token = (await Notifications.getExpoPushTokenAsync({ projectId: 'f848ca4d-cf74-4e6b-b42d-107d533158b8' })).data;
     console.log(token);
   };
 

@@ -198,7 +198,7 @@ const RestaurantMap = () => {
             <Text style={styles.modalTitle}>Verificar Pedido</Text>
             <ScrollView style={styles.modalScroll}>
               {order.order_details?.map((item, index) => (
-                <View key={item.id} style={styles.modalItem}>
+                <View key={item.id} style={styles.card}>
                   <Text style={styles.modalItemText}>{item.meal.name} - {item.quantity}x</Text>
                   <TouchableOpacity
                     style={[styles.verifyButton, verifiedItems[index] && styles.verifiedButton]}
@@ -300,14 +300,22 @@ const styles = StyleSheet.create({
   modalScroll: {
     width: '100%',
   },
-  modalItem: {
+  card: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 10,
+    backgroundColor: '#f8f8f8',
+    padding: 10,
+    borderRadius: 8,
+    marginVertical: 5,
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 8,
   },
   modalItemText: {
     fontSize: 16,
+    flex: 1,
   },
   verifyButton: {
     paddingVertical: 5,

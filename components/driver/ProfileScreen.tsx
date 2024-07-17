@@ -29,7 +29,7 @@ const ProfileScreen = () => {
     };
 
     fetchProfileData();
-  }, [user.token]);
+  }, [user?.token]);
 
   const pickImage = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({

@@ -1,12 +1,12 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, Image, ScrollView, Alert, ActivityIndicator, StyleSheet } from 'react-native';
 import { useSelector } from 'react-redux';
-import { useForm } from 'react-hook-form';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import tailwind from 'twrnc';
-import { selectUser } from '../redux/slices/authSlice';
-import { fetchCategorias, fetchProducts, addProduct, updateProduct, deleteProduct } from '../services/apiService';
-import { Product, Categoria } from '../services/types';
+import * as ImagePicker from 'expo-image-picker';
+import { selectUser } from '../../redux/slices/authSlice';
+import { fetchCategorias, fetchProducts, addProduct, updateProduct, deleteProduct } from '../../services/apiService';
+import { Product, Categoria, ImageType } from '../../services/types';
 import EditProductModal from './EditProductModal';
 import AddProductModal from './AddProductModal';
 
@@ -19,13 +19,6 @@ const Products: React.FC = () => {
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string>('');
-
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-    reset,
-  } = useForm<Product>();
 
   useEffect(() => {
     const loadCategorias = async () => {
@@ -59,12 +52,16 @@ const Products: React.FC = () => {
     loadProducts();
   }, [loadProducts]);
 
-  const onSubmit = async (data: Product) => {
+  const handleAddProduct = async (data: Product) => {
     const formData = new FormData();
     formData.append('name', data.name);
     formData.append('short_description', data.short_description);
     if (data.image && data.image[0]) {
-      formData.append('image', data.image[0]);
+      formData.append('image', {
+        uri: data.image[0].uri,
+        name: 'product_image.jpg',
+        type: 'image/jpeg',
+      } as any);
     }
     formData.append('price', String(data.price));
     formData.append('category', selectedCategory);
@@ -76,7 +73,6 @@ const Products: React.FC = () => {
       await addProduct(formData);
       Alert.alert('Sucesso', 'Produto adicionado com sucesso!');
       setIsAddModalOpen(false);
-      reset();
       loadProducts();
     } catch (error) {
       console.error('Falha ao adicionar produto:', error);
@@ -86,14 +82,18 @@ const Products: React.FC = () => {
     }
   };
 
-  const handleUpdate = async (data: Product) => {
+  const handleUpdateProduct = async (data: Product) => {
     if (!editingProduct) return;
 
     const formData = new FormData();
     formData.append('name', data.name);
     formData.append('short_description', data.short_description);
     if (data.image && data.image[0]) {
-      formData.append('image', data.image[0]);
+      formData.append('image', {
+        uri: data.image[0].uri,
+        name: 'product_image.jpg',
+        type: 'image/jpeg',
+      } as any);
     }
     formData.append('price', String(data.price));
     formData.append('category', selectedCategory);
@@ -115,7 +115,7 @@ const Products: React.FC = () => {
     }
   };
 
-  const handleDelete = async (productId: number) => {
+  const handleDeleteProduct = async (productId: number) => {
     if (!user?.user_id) return;
     Alert.alert(
       'Confirmar',
@@ -170,53 +170,36 @@ const Products: React.FC = () => {
       )}
 
       {!loading && (
-        <ScrollView horizontal>
-          <View style={tailwind`min-w-full bg-white border`}>
-            <View style={tailwind`flex flex-row bg-gray-200`}>
-              <Text style={tailwind`px-6 py-3 border-b-2 border-gray-300 text-left text-xs leading-4 text-gray-600 uppercase tracking-wider`}>
-                Nome
-              </Text>
-              <Text style={tailwind`px-6 py-3 border-b-2 border-gray-300 text-left text-xs leading-4 text-gray-600 uppercase tracking-wider`}>
-                Descrição
-              </Text>
-              <Text style={tailwind`px-6 py-3 border-b-2 border-gray-300 text-left text-xs leading-4 text-gray-600 uppercase tracking-wider`}>
-                Preço
-              </Text>
-              <Text style={tailwind`px-6 py-3 border-b-2 border-gray-300 text-left text-xs leading-4 text-gray-600 uppercase tracking-wider`}>
-                Imagem
-              </Text>
-              <Text style={tailwind`px-6 py-3 border-b-2 border-gray-300 text-left text-xs leading-4 text-gray-600 uppercase tracking-wider`}>
-                Ações
-              </Text>
-            </View>
-            {products?.map((product, index) => (
-              <View key={index} style={tailwind`flex flex-row hover:bg-gray-100`}>
-                <Text style={tailwind`px-6 py-4 border-b border-gray-300`}>{product.name}</Text>
-                <Text style={tailwind`px-6 py-4 border-b border-gray-300`}>{product.short_description}</Text>
-                <Text style={tailwind`px-6 py-4 border-b border-gray-300`}>{product.price} Kz</Text>
-                <View style={tailwind`px-6 py-4 border-b border-gray-300`}>
-                  <Image
-                    source={{ uri: product.image || 'https://www.kudya.shop/media/logo/azul.png' }}
-                    style={tailwind`w-16 h-16 rounded`}
-                  />
+        <ScrollView>
+          {products?.map((product, index) => (
+            <View key={index} style={styles.card}>
+              <View style={styles.cardContent}>
+                <Image
+                  source={{ uri: product.image ? product.image : 'https://www.kudya.shop/media/logo/azul.png' }}
+                  style={styles.cardImage}
+                />
+                <View style={styles.cardDetails}>
+                  <Text style={styles.cardTitle}>{product.name}</Text>
+                  <Text style={styles.cardDescription}>{product.short_description}</Text>
+                  <Text style={styles.cardPrice}>{product.price} Kz</Text>
                 </View>
-                <View style={tailwind`px-6 py-4 border-b border-gray-300 flex flex-row`}>
+                <View style={styles.cardActions}>
                   <TouchableOpacity
                     onPress={() => openEditModal(product)}
-                    style={tailwind`text-blue-600 hover:text-blue-800 focus:outline-none`}
+                    style={tailwind`text-green-600 hover:text-green-800 focus:outline-none`}
                   >
-                    <Icon name="edit" size={20} />
+                    <Icon name="edit" size={20} color="green" />
                   </TouchableOpacity>
                   <TouchableOpacity
-                    onPress={() => handleDelete(product.id!)}
+                    onPress={() => handleDeleteProduct(product.id!)}
                     style={tailwind`ml-4 text-red-600 hover:text-red-800 focus:outline-none`}
                   >
-                    <Icon name="trash" size={20} />
+                    <Icon name="trash" size={20} color="red" />
                   </TouchableOpacity>
                 </View>
               </View>
-            ))}
-          </View>
+            </View>
+          ))}
         </ScrollView>
       )}
 
@@ -226,8 +209,8 @@ const Products: React.FC = () => {
         setSelectedCategory={setSelectedCategory}
         isAddModalOpen={isAddModalOpen}
         setIsAddModalOpen={setIsAddModalOpen}
-        onSubmit={onSubmit}
-        errors={errors}
+        onSubmit={handleAddProduct}
+        errors={{}}
       />
 
       <EditProductModal
@@ -237,8 +220,8 @@ const Products: React.FC = () => {
         isEditModalOpen={isEditModalOpen}
         setIsEditModalOpen={setIsEditModalOpen}
         editingProduct={editingProduct}
-        handleUpdate={handleUpdate}
-        errors={errors}
+        onSubmit={handleUpdateProduct}
+        errors={{}}
       />
     </View>
   );
@@ -250,6 +233,49 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.5)',
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  card: {
+    backgroundColor: '#fff',
+    borderRadius: 8,
+    padding: 16,
+    marginVertical: 8,
+    marginHorizontal: 16,
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  cardContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  cardImage: {
+    width: 80,
+    height: 80,
+    borderRadius: 8,
+    marginRight: 16,
+  },
+  cardDetails: {
+    flex: 1,
+  },
+  cardTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 4,
+  },
+  cardDescription: {
+    fontSize: 14,
+    color: '#6b7280',
+    marginBottom: 8,
+  },
+  cardPrice: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#374151',
+  },
+  cardActions: {
+    flexDirection: 'row',
   },
 });
 
