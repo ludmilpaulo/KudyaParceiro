@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { View, Text, TextInput, TouchableOpacity, Modal, ScrollView, StyleSheet, Button, KeyboardAvoidingView, Platform, Image } from 'react-native';
 import DropDownPicker from 'react-native-dropdown-picker';
 import tailwind from 'twrnc';
-import { Categoria, Product, ImageType } from '../../services/types';
+import { Categoria, Product } from '../../services/types';
 import * as ImagePicker from 'expo-image-picker';
 
 interface AddProductModalProps {
@@ -31,6 +31,15 @@ const AddProductModal: React.FC<AddProductModalProps> = ({
   const [items, setItems] = useState(categorias.map(cat => ({ label: cat.name, value: cat.id.toString() })));
   const [image, setImage] = useState<string | null>(null);
 
+  useEffect(() => {
+    console.log('Initial categories:', categorias);
+    console.log('Initial selected category:', selectedCategory);
+  }, [categorias, selectedCategory]);
+
+  useEffect(() => {
+    console.log('Selected category:', selectedCategory);
+  }, [selectedCategory]);
+
   const pickImage = async () => {
     let result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
@@ -42,7 +51,8 @@ const AddProductModal: React.FC<AddProductModalProps> = ({
     if (!result.canceled && result.assets && result.assets.length > 0) {
       const pickedImage = result.assets[0];
       setImage(pickedImage.uri);
-      setValue('image', [{ uri: pickedImage.uri, name: 'product_image.jpg', type: 'image/jpeg' }]);
+      setValue('image', pickedImage.uri);
+      console.log('Picked image:', pickedImage.uri);
     }
   };
 
@@ -57,7 +67,8 @@ const AddProductModal: React.FC<AddProductModalProps> = ({
     if (!result.canceled && result.assets && result.assets.length > 0) {
       const takenPhoto = result.assets[0];
       setImage(takenPhoto.uri);
-      setValue('image', [{ uri: takenPhoto.uri, name: 'product_image.jpg', type: 'image/jpeg' }]);
+      setValue('image', takenPhoto.uri);
+      console.log('Taken photo:', takenPhoto.uri);
     }
   };
 
@@ -81,7 +92,7 @@ const AddProductModal: React.FC<AddProductModalProps> = ({
                 value={selectedCategory}
                 items={items}
                 setOpen={setOpen}
-                setValue={(callback) => setSelectedCategory(callback(selectedCategory))}
+                setValue={setSelectedCategory}
                 setItems={setItems}
                 placeholder="Selecione ou digite uma categoria"
                 searchable={true}

@@ -79,7 +79,7 @@ const Report: React.FC = () => {
         } else {
           setData(responseData);
         }
-      } catch (error) {
+      } catch (error:any) {
         console.error('Error fetching data:', error.message);
       } finally {
         setLoading(false);

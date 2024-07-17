@@ -1,14 +1,14 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { View, Text, TouchableOpacity, Image, ScrollView, Alert, ActivityIndicator, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, Image, ScrollView, Alert, ActivityIndicator, StyleSheet, Button, Modal, TextInput, KeyboardAvoidingView, Platform } from 'react-native';
 import { useSelector } from 'react-redux';
 import Icon from 'react-native-vector-icons/FontAwesome';
+import DropDownPicker from 'react-native-dropdown-picker';
 import tailwind from 'twrnc';
-import * as ImagePicker from 'expo-image-picker';
+import { useForm, Controller } from 'react-hook-form';
 import { selectUser } from '../../redux/slices/authSlice';
 import { fetchCategorias, fetchProducts, addProduct, updateProduct, deleteProduct } from '../../services/apiService';
-import { Product, Categoria, ImageType } from '../../services/types';
-import EditProductModal from './EditProductModal';
-import AddProductModal from './AddProductModal';
+import { Product, Categoria } from '../../services/types';
+import * as ImagePicker from 'expo-image-picker';
 
 const Products: React.FC = () => {
   const user = useSelector(selectUser);
@@ -19,13 +19,18 @@ const Products: React.FC = () => {
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string>('');
+  const [open, setOpen] = useState(false);
+  const { control, handleSubmit, setValue, formState: { errors } } = useForm<Product>();
+  const [image, setImage] = useState<string | null>(null);
 
   useEffect(() => {
     const loadCategorias = async () => {
       setLoading(true);
       try {
+        console.log('Fetching categories...');
         const data = await fetchCategorias();
         setCategorias(data);
+        console.log('Categories fetched:', data);
       } catch (error) {
         console.error('Falha ao buscar categorias:', error);
       } finally {
@@ -39,14 +44,22 @@ const Products: React.FC = () => {
     if (!user?.user_id) return;
     setLoading(true);
     try {
+      console.log('Fetching products for user:', user.user_id);
       const data = await fetchProducts(user.user_id);
-      setProducts(data);
+      console.log('Products fetched:', data);
+      if (selectedCategory) {
+        const filteredProducts = data.filter(product => product.category.toString() === selectedCategory);
+        setProducts(filteredProducts);
+        console.log('Filtered products:', filteredProducts);
+      } else {
+        setProducts(data);
+      }
     } catch (error) {
       console.error('Falha ao buscar produtos:', error);
     } finally {
       setLoading(false);
     }
-  }, [user]);
+  }, [user, selectedCategory]);
 
   useEffect(() => {
     loadProducts();
@@ -56,9 +69,9 @@ const Products: React.FC = () => {
     const formData = new FormData();
     formData.append('name', data.name);
     formData.append('short_description', data.short_description);
-    if (data.image && data.image[0]) {
+    if (image) {
       formData.append('image', {
-        uri: data.image[0].uri,
+        uri: image,
         name: 'product_image.jpg',
         type: 'image/jpeg',
       } as any);
@@ -67,6 +80,8 @@ const Products: React.FC = () => {
     formData.append('category', selectedCategory);
     formData.append('user_id', String(user.user_id));
     formData.append('access_token', user.token);
+
+    console.log('Adding product with data:', formData);
 
     setLoading(true);
     try {
@@ -88,9 +103,9 @@ const Products: React.FC = () => {
     const formData = new FormData();
     formData.append('name', data.name);
     formData.append('short_description', data.short_description);
-    if (data.image && data.image[0]) {
+    if (image) {
       formData.append('image', {
-        uri: data.image[0].uri,
+        uri: image,
         name: 'product_image.jpg',
         type: 'image/jpeg',
       } as any);
@@ -99,6 +114,8 @@ const Products: React.FC = () => {
     formData.append('category', selectedCategory);
     formData.append('user_id', String(user.user_id));
     formData.append('access_token', user.token);
+
+    console.log('Updating product with data:', formData);
 
     setLoading(true);
     try {
@@ -130,6 +147,7 @@ const Products: React.FC = () => {
           onPress: async () => {
             setLoading(true);
             try {
+              console.log('Deleting product with ID:', productId);
               await deleteProduct(productId, user.user_id);
               Alert.alert('Sucesso', 'Produto excluído com sucesso!');
               loadProducts();
@@ -147,9 +165,42 @@ const Products: React.FC = () => {
   };
 
   const openEditModal = (product: Product) => {
+    console.log('Opening edit modal for product:', product);
     setEditingProduct(product);
     setSelectedCategory(product.category.toString());
     setIsEditModalOpen(true);
+  };
+
+  const pickImage = async () => {
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 1,
+    });
+
+    if (!result.canceled && result.assets && result.assets.length > 0) {
+      const pickedImage = result.assets[0];
+      setImage(pickedImage.uri);
+      setValue('image', pickedImage.uri);
+      console.log('Picked image:', pickedImage.uri);
+    }
+  };
+
+  const takePhoto = async () => {
+    let result = await ImagePicker.launchCameraAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 1,
+    });
+
+    if (!result.canceled && result.assets && result.assets.length > 0) {
+      const takenPhoto = result.assets[0];
+      setImage(takenPhoto.uri);
+      setValue('image', takenPhoto.uri);
+      console.log('Taken photo:', takenPhoto.uri);
+    }
   };
 
   return (
@@ -203,26 +254,208 @@ const Products: React.FC = () => {
         </ScrollView>
       )}
 
-      <AddProductModal
-        categorias={categorias}
-        selectedCategory={selectedCategory}
-        setSelectedCategory={setSelectedCategory}
-        isAddModalOpen={isAddModalOpen}
-        setIsAddModalOpen={setIsAddModalOpen}
-        onSubmit={handleAddProduct}
-        errors={{}}
-      />
+      <Modal
+        visible={isAddModalOpen}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setIsAddModalOpen(false)}
+      >
+        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.overlay}>
+          <View style={styles.modalContent}>
+            <Text style={tailwind`text-2xl font-bold mb-4`}>Adicionar Produto</Text>
+            <ScrollView>
+              <View style={tailwind`mb-4 z-10`}>
+                <Text style={tailwind`block mb-2`}>Categoria</Text>
+                <DropDownPicker
+                  open={open}
+                  value={selectedCategory}
+                  items={categorias.map(cat => ({ label: cat.name, value: cat.id.toString() }))}
+                  setOpen={setOpen}
+                  setValue={setSelectedCategory}
+                  setItems={setCategorias}
+                  placeholder="Selecione ou digite uma categoria"
+                  searchable={true}
+                  searchPlaceholder="Digite para pesquisar..."
+                  style={tailwind`w-full p-2 border rounded`}
+                />
+                {errors.category && <Text style={tailwind`text-red-500`}>Categoria é obrigatória</Text>}
+              </View>
+              <View style={tailwind`mb-4`}>
+                <Text style={tailwind`block mb-2`}>Nome</Text>
+                <Controller
+                  control={control}
+                  render={({ field: { onChange, value } }) => (
+                    <TextInput
+                      style={tailwind`w-full p-2 border rounded`}
+                      onChangeText={onChange}
+                      value={value}
+                    />
+                  )}
+                  name="name"
+                  rules={{ required: true }}
+                />
+                {errors.name && <Text style={tailwind`text-red-500`}>Nome é obrigatório</Text>}
+              </View>
+              <View style={tailwind`mb-4`}>
+                <Text style={tailwind`block mb-2`}>Pequena Descrição</Text>
+                <Controller
+                  control={control}
+                  render={({ field: { onChange, value } }) => (
+                    <TextInput
+                      style={tailwind`w-full p-2 border rounded`}
+                      onChangeText={onChange}
+                      value={value}
+                    />
+                  )}
+                  name="short_description"
+                  rules={{ required: true }}
+                />
+                {errors.short_description && <Text style={tailwind`text-red-500`}>Descrição curta é obrigatória</Text>}
+              </View>
+              <View style={tailwind`mb-4`}>
+                <Text style={tailwind`block mb-2`}>Imagem</Text>
+                <View style={tailwind`flex-row justify-between`}>
+                  <Button title="Escolher da Galeria" onPress={pickImage} />
+                  <Button title="Tirar Foto" onPress={takePhoto} />
+                </View>
+                {image && (
+                  <View style={tailwind`mt-4`}>
+                    <Image source={{ uri: image }} style={styles.imagePreview} />
+                  </View>
+                )}
+              </View>
+              <View style={tailwind`mb-4`}>
+                <Text style={tailwind`block mb-2`}>Preço</Text>
+                <Controller
+                  control={control}
+                  render={({ field: { onChange, value } }) => (
+                    <TextInput
+                      keyboardType="numeric"
+                      style={tailwind`w-full p-2 border rounded`}
+                      onChangeText={onChange}
+                      value={value}
+                    />
+                  )}
+                  name="price"
+                  rules={{ required: true }}
+                />
+                {errors.price && <Text style={tailwind`text-red-500`}>Preço é obrigatório</Text>}
+              </View>
+              <View style={tailwind`flex flex-row justify-between mt-4`}>
+                <TouchableOpacity onPress={handleSubmit(handleAddProduct)} style={tailwind`px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600`}>
+                  <Text style={tailwind`text-white`}>Salvar</Text>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => setIsAddModalOpen(false)} style={tailwind`px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600`}>
+                  <Text style={tailwind`text-white`}>Cancelar</Text>
+                </TouchableOpacity>
+              </View>
+            </ScrollView>
+          </View>
+        </KeyboardAvoidingView>
+      </Modal>
 
-      <EditProductModal
-        categorias={categorias}
-        selectedCategory={selectedCategory}
-        setSelectedCategory={setSelectedCategory}
-        isEditModalOpen={isEditModalOpen}
-        setIsEditModalOpen={setIsEditModalOpen}
-        editingProduct={editingProduct}
-        onSubmit={handleUpdateProduct}
-        errors={{}}
-      />
+      <Modal
+        visible={isEditModalOpen}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setIsEditModalOpen(false)}
+      >
+        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.overlay}>
+          <View style={styles.modalContent}>
+            <Text style={tailwind`text-2xl font-bold mb-4`}>Editar Produto</Text>
+            <ScrollView>
+              <View style={tailwind`mb-4 z-10`}>
+                <Text style={tailwind`mb-2`}>Categoria</Text>
+                <DropDownPicker
+                  open={open}
+                  value={selectedCategory}
+                  items={categorias.map(cat => ({ label: cat.name, value: cat.id.toString() }))}
+                  setOpen={setOpen}
+                  setValue={setSelectedCategory}
+                  setItems={setCategorias}
+                  placeholder="Selecione ou digite uma categoria"
+                  searchable={true}
+                  searchPlaceholder="Digite para pesquisar..."
+                  style={tailwind`w-full p-2 border rounded`}
+                />
+                {errors.category && <Text style={tailwind`text-red-500`}>Categoria é obrigatória</Text>}
+              </View>
+              <View style={tailwind`mb-4`}>
+                <Text style={tailwind`mb-2`}>Nome</Text>
+                <Controller
+                  control={control}
+                  render={({ field: { onChange, value } }) => (
+                    <TextInput
+                      style={tailwind`w-full p-2 border rounded`}
+                      onChangeText={onChange}
+                      value={value}
+                    />
+                  )}
+                  name="name"
+                  defaultValue={editingProduct?.name}
+                  rules={{ required: true }}
+                />
+                {errors.name && <Text style={tailwind`text-red-500`}>Nome é obrigatório</Text>}
+              </View>
+              <View style={tailwind`mb-4`}>
+                <Text style={tailwind`mb-2`}>Pequena Descrição</Text>
+                <Controller
+                  control={control}
+                  render={({ field: { onChange, value } }) => (
+                    <TextInput
+                      style={tailwind`w-full p-2 border rounded`}
+                      onChangeText={onChange}
+                      value={value}
+                    />
+                  )}
+                  name="short_description"
+                  defaultValue={editingProduct?.short_description}
+                  rules={{ required: true }}
+                />
+                {errors.short_description && <Text style={tailwind`text-red-500`}>Descrição curta é obrigatória</Text>}
+              </View>
+              <View style={tailwind`mb-4`}>
+                <Text style={tailwind`mb-2`}>Imagem</Text>
+                <View style={tailwind`flex-row justify-between`}>
+                  <Button title="Escolher da Galeria" onPress={pickImage} />
+                  <Button title="Tirar Foto" onPress={takePhoto} />
+                </View>
+                {image && (
+                  <View style={tailwind`mt-4`}>
+                    <Image source={{ uri: image }} style={styles.imagePreview} />
+                  </View>
+                )}
+              </View>
+              <View style={tailwind`mb-4`}>
+                <Text style={tailwind`mb-2`}>Preço</Text>
+                <Controller
+                  control={control}
+                  render={({ field: { onChange, value } }) => (
+                    <TextInput
+                      keyboardType="numeric"
+                      style={tailwind`w-full p-2 border rounded`}
+                      onChangeText={onChange}
+                      value={value}
+                    />
+                  )}
+                  name="price"
+                  defaultValue={editingProduct?.price.toString()}
+                  rules={{ required: true }}
+                />
+                {errors.price && <Text style={tailwind`text-red-500`}>Preço é obrigatório</Text>}
+              </View>
+              <View style={tailwind`flex flex-row justify-between mt-4`}>
+                <TouchableOpacity onPress={handleSubmit(handleUpdateProduct)} style={tailwind`px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600`}>
+                  <Text style={tailwind`text-white`}>Atualizar</Text>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => setIsEditModalOpen(false)} style={tailwind`px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600`}>
+                  <Text style={tailwind`text-white`}>Cancelar</Text>
+                </TouchableOpacity>
+              </View>
+            </ScrollView>
+          </View>
+        </KeyboardAvoidingView>
+      </Modal>
     </View>
   );
 };
@@ -276,6 +509,29 @@ const styles = StyleSheet.create({
   },
   cardActions: {
     flexDirection: 'row',
+  },
+  imagePreview: {
+    width: '100%',
+    height: 200,
+    borderRadius: 10,
+  },
+  overlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContent: {
+    width: '90%',
+    maxWidth: 400,
+    backgroundColor: 'white',
+    padding: 20,
+    borderRadius: 10,
+    shadowColor: '#000',
+    shadowOpacity: 0.25,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 8,
+    elevation: 5,
   },
 });
 

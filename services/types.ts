@@ -1,7 +1,7 @@
 //export const baseAPI: string = "http://127.0.0.1:8000";
-export const baseAPI: string = "https://www.kudya.shop";
+//export const baseAPI: string = "https://www.kudya.shop";
 
-//export const baseAPI: string = "http://192.168.1.108:8000";
+export const baseAPI: string = "http://192.168.1.108:8000";
 
 
 
@@ -31,8 +31,8 @@ export type UserDetails = {
     modificado_em: string;
     children: ReactNode;
   };
-  
-  
+
+
   export interface OrderTypes {
     id: number;
     order_details: {
@@ -52,6 +52,9 @@ export type UserDetails = {
     };
     total: number;
     status: string;
+    payment_status_restaurant : string;
+    proof_of_payment_restaurant :string;
+    original_price: string;
   }
 
   export interface ImageType {
@@ -68,8 +71,8 @@ export type UserDetails = {
     id?: number;
     name: string;
     short_description: string;
-    image?: ImageType[]; // Ensure image is an array of ImageType
-   // image: string;
+   // image?: ImageType[]; // Ensure image is an array of ImageType
+    image: string;
     price: string;
     category: string | number;
     // Add other fields if necessary...
