@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef } from "react";
 import { SafeAreaView, ScrollView, StyleSheet, Text, Vibration, View, ActivityIndicator, Switch, Alert } from "react-native";
 import OrdersItem from "../components/OrdersItem";
 import * as Notifications from 'expo-notifications';
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useNavigationState } from "@react-navigation/native";
 import { useSelector, useDispatch } from "react-redux";
 import { selectUser, logoutUser } from "../redux/slices/authSlice";
 import { getDriverProfile, getDriverOrders, updateDriverLocation, fetchOngoingOrder, fetchVerifiedOrder } from "../services/driverService";
@@ -31,6 +31,8 @@ const EntregadorDashboard = () => {
   const navigation = useNavigation<any>();
   const dispatch = useDispatch();
   const sound = useRef<Audio.Sound | null>(null);
+
+  const routes = useNavigationState(state => state.routes);
 
   const getUserData = async () => {
     try {
@@ -78,7 +80,7 @@ const EntregadorDashboard = () => {
 
       setUserOrder(filteredOrders);
 
-      if (filteredOrders.length > 0) {
+      if (filteredOrders.length > 0 && !routes.some(route => route.name === "CustomerDelivery" || route.name === "RestaurantMap")) {
         Vibration.vibrate(2000); // Vibrate for 2 seconds
         await playSound();
         await sendPushNotification();

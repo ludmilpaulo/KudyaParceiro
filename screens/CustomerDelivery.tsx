@@ -73,6 +73,7 @@ const CustomerDelivery = () => {
 
         if (locationToUse) {
           const locationParts = locationToUse.split(',').map(Number);
+          console.log("Location parts:", locationParts);
           if (locationParts.length === 2) {
             const [latitude, longitude] = locationParts;
             const distanceToCustomer = calculateDistance(
@@ -111,14 +112,22 @@ const CustomerDelivery = () => {
     return null;
   }
 
-  const locationToUse = order.address || order.customer.location;
+  const locationToUse = order.address || order.customer.location || '';
   const locationParts = locationToUse.split(',').map(Number);
-  const latitude = locationParts[0];
-  const longitude = locationParts[1];
+  const latitude = locationParts.length === 2 ? locationParts[0] : null;
+  const longitude = locationParts.length === 2 ? locationParts[1] : null;
+
+  console.log("Order location:", locationToUse);
+  console.log("Parsed latitude:", latitude);
+  console.log("Parsed longitude:", longitude);
 
   const openGoogleMaps = () => {
-    const url = `https://www.google.com/maps/dir/?api=1&destination=${latitude},${longitude}`;
-    Linking.openURL(url);
+    if (latitude && longitude) {
+      const url = `https://www.google.com/maps/dir/?api=1&destination=${latitude},${longitude}`;
+      Linking.openURL(url);
+    } else {
+      Alert.alert("Erro", "Coordenadas de localização inválidas.");
+    }
   };
 
   const openChat = () => {
@@ -182,17 +191,23 @@ const CustomerDelivery = () => {
       <MapView
         style={styles.map}
         initialRegion={{
-          latitude,
-          longitude,
+          latitude: latitude || 0,
+          longitude: longitude || 0,
           latitudeDelta: 0.01,
           longitudeDelta: 0.01,
         }}
       >
-        <Marker
-          coordinate={{ latitude, longitude }}
-          title="Cliente"
-          description={order.address || order.customer.address}
-        />
+        {latitude && longitude && (
+          <Marker
+            coordinate={{ latitude, longitude }}
+            title="Cliente"
+            description={order.address || order.customer.address}
+          >
+            <View>
+              <Text>{order.address || order.customer.address}</Text>
+            </View>
+          </Marker>
+        )}
       </MapView>
       <View style={styles.detailsContainer}>
         <Text style={styles.title}>Entregar para</Text>
