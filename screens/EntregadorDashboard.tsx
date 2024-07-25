@@ -69,8 +69,11 @@ const EntregadorDashboard = () => {
   };
 
   const fetchDataFromOrderEndpoint = async () => {
+    console.log('Fetching data from order endpoint');
     try {
       const orders = await getDriverOrders(dispatch);
+      console.log('Orders fetched:', orders);
+
       const filteredOrders = orders.filter(order => {
         const [latitude, longitude] = order.restaurant.location.split(',').map(Number);
         const orderLocation = { latitude, longitude };
@@ -78,6 +81,7 @@ const EntregadorDashboard = () => {
         return distance <= 38;
       });
 
+      console.log('Filtered orders:', filteredOrders);
       setUserOrder(filteredOrders);
 
       if (filteredOrders.length > 0 && !routes.some(route => route.name === "CustomerDelivery" || route.name === "RestaurantMap")) {
@@ -95,8 +99,10 @@ const EntregadorDashboard = () => {
   };
 
   const updateLocation = async () => {
+    console.log('Updating location');
     try {
       const currentLocation = await Location.getCurrentPositionAsync({});
+      console.log('Current location:', currentLocation);
       setLocation(currentLocation);
       await updateDriverLocation(user?.user_id, user?.token, currentLocation.coords.latitude, currentLocation.coords.longitude);
     } catch (error) {
@@ -105,6 +111,7 @@ const EntregadorDashboard = () => {
   };
 
   const handleStatusChange = async (status: boolean) => {
+    console.log(`Status changed to: ${status}`);
     setIsOnline(status);
     if (status) {
       const { status: locationStatus } = await Location.requestForegroundPermissionsAsync();
@@ -115,6 +122,10 @@ const EntregadorDashboard = () => {
       }
       locationIntervalRef.current = setInterval(updateLocation, 3000); // Update location every 3 seconds
       fetchDataIntervalRef.current = setInterval(fetchDataFromOrderEndpoint, 5000); // Fetch data every 5 seconds
+
+      // Fetch data immediately
+      console.log('Fetching data immediately after going online');
+      await fetchDataFromOrderEndpoint();
     } else {
       if (locationIntervalRef.current) {
         clearInterval(locationIntervalRef.current);

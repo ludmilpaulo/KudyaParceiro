@@ -17,8 +17,8 @@ export default function HomeNavigator() {
         headerShown: false,
       }}
     >
-      <Stack.Screen name="HomeScreen" component={MainTabNavigator} />
-      <Stack.Screen name="EntregadorDashboard" component={EntregadorDashboard} />
+      
+      <Stack.Screen name="EntregadorDashboard" component={MainTabNavigator} />
       <Stack.Screen name="UserProfile" component={UserProfile} />
       <Stack.Screen name="RestaurantMap" component={RestaurantMap} />
       <Stack.Screen name="RestaurantDashboard" component={RestaurantDashboard} />
