@@ -17,7 +17,7 @@ export type UserDetails = {
     id: number;
     phone: number;
   };
-  
+
   export type FornecedorType = {
     id: number;
     user: number;
