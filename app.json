@@ -12,8 +12,17 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true
+      "buildNumber": "1",
+      "supportsTablet": true,
+      "infoPlist": {
+        "CFBundleDisplayName": "Kudya Parceiro",
+        "NSLocationWhenInUseUsageDescription": "We use your location to autofill your delivery address.",
+        "ITSAppUsesNonExemptEncryption": false
+      },
+      "bundleIdentifier": "com.ludmil.ghanadudemobile",
+      "label": "Kudya Parceiro"
     },
+    
     "android": {
       "config": {
         "googleMaps": {
@@ -24,6 +33,7 @@
         "LOCATION"
       ],
       "package": "com.ludmil.KudyaParceiro",
+      "label": "Kudya Parceiro",
       "versionCode": 3
     },
     "web": {
