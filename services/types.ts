@@ -1,9 +1,9 @@
 //export const baseAPI: string = "http://127.0.0.1:8000";
 export const baseAPI: string = "https://kudya.pythonanywhere.com";
 
-//export const baseAPI: string = "http://192.168.1.108:8000";
 
 
+//export const baseAPI: string = "http://192.168.1.109:8000";
 
 
 

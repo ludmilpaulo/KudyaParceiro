@@ -1,3 +1,6 @@
+import 'react-native-gesture-handler';
+import 'react-native-reanimated';
+
 import React from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { Provider } from "react-redux";
@@ -6,8 +9,6 @@ import { store, persistor } from "./redux/store"; // Ensure correct import path
 import { PersistGate } from "redux-persist/integration/react";
 import AppNavigator from "./navigation/AppNavigator";
 
-import 'react-native-gesture-handler';
-import 'react-native-reanimated';
 
 
 
@@ -17,9 +18,7 @@ export default function App() {
       <Provider store={store}>
         <TailwindProvider>
           <PersistGate loading={null} persistor={persistor}>
-           
-              <AppNavigator />
-           
+         <AppNavigator />
           </PersistGate>
         </TailwindProvider>
       </Provider>

@@ -20,6 +20,7 @@ const JoinScreen = () => {
         let { status } = await Location.requestForegroundPermissionsAsync();
         if (status !== 'granted') {
           console.error('Permission to access location was denied');
+          setLoading(false);
           return;
         }
 
