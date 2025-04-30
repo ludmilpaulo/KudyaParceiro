@@ -15,7 +15,7 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "buildNumber": "1",
+      "buildNumber": "2",
       "supportsTablet": true,
       "infoPlist": {
         "CFBundleDisplayName": "Kudya Parceiro",
@@ -25,7 +25,6 @@
       "bundleIdentifier": "com.ludmil.ghanadudemobile",
       "label": "Kudya Parceiro"
     },
-    
     "android": {
       "config": {
         "googleMaps": {
@@ -37,7 +36,7 @@
       ],
       "package": "com.ludmil.KudyaParceiro",
       "label": "Kudya Parceiro",
-      "versionCode": 3
+      "versionCode": 4
     },
     "web": {
       "favicon": "./assets/azul.png"
