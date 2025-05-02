@@ -15,7 +15,7 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "buildNumber": "3",
+      "buildNumber": "5",
       "supportsTablet": true,
       "infoPlist": {
         "CFBundleDisplayName": "Kudya Parceiro",
@@ -32,11 +32,14 @@
         }
       },
       "permissions": [
+        "READ_EXTERNAL_STORAGE",
+        "WRITE_EXTERNAL_STORAGE",
+        "CAMERA",
         "LOCATION"
       ],
       "package": "com.ludmil.KudyaParceiro",
       "label": "Kudya Parceiro",
-      "versionCode": 6
+      "versionCode": 8
     },
     "web": {
       "favicon": "./assets/azul.png"
