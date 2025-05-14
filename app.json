@@ -6,25 +6,20 @@
     "orientation": "portrait",
     "icon": "./assets/azul.png",
     "userInterfaceStyle": "light",
-    "experimental": {
-      "newArchEnabled": true
-    },
     "splash": {
       "image": "./assets/azul.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
     "ios": {
-  
-      "buildNumber": "1",
+      "buildNumber": "3",
       "supportsTablet": true,
       "infoPlist": {
         "CFBundleDisplayName": "Kudya Parceiro",
         "NSLocationWhenInUseUsageDescription": "We use your location to autofill your delivery address.",
         "ITSAppUsesNonExemptEncryption": false
       },
-      "bundleIdentifier": "com.ludmil.kudyaparceiro",
-      "label": "Kudya Parceiro"
+      "bundleIdentifier": "com.ludmil.kudyaparceiro"
     },
     "android": {
       "config": {
@@ -39,7 +34,6 @@
         "LOCATION"
       ],
       "package": "com.ludmil.KudyaParceiro",
-      "label": "Kudya Parceiro",
       "versionCode": 9
     },
     "web": {
