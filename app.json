@@ -12,11 +12,13 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "buildNumber": "3",
+      "buildNumber": "4",
       "supportsTablet": true,
       "infoPlist": {
         "CFBundleDisplayName": "Kudya Parceiro",
         "NSLocationWhenInUseUsageDescription": "We use your location to autofill your delivery address.",
+        "NSPhotoLibraryUsageDescription": "We require access to your photo library to allow you to upload images.",
+        "NSPhotoLibraryAddUsageDescription": "We require permission to save images to your photo library.",
         "ITSAppUsesNonExemptEncryption": false
       },
       "bundleIdentifier": "com.ludmil.kudyaparceiro"
@@ -34,7 +36,7 @@
         "LOCATION"
       ],
       "package": "com.ludmil.KudyaParceiro",
-      "versionCode": 9
+      "versionCode": 10
     },
     "web": {
       "favicon": "./assets/azul.png"
