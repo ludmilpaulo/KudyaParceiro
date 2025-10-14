@@ -194,4 +194,39 @@ export const fetchVerifiedOrder = async (accessToken: string) => {
       throw error;
     }
   };
+
+// New delivery API (modern endpoints)
+export const toggleOnline = async (driverId: number) => {
+  const res = await fetch(`${baseAPI}/drivers/api/drivers/${driverId}/toggle_online/`, { method: 'POST' });
+  return res.json();
+};
+
+export const toggleAvailable = async (driverId: number) => {
+  const res = await fetch(`${baseAPI}/drivers/api/drivers/${driverId}/toggle_available/`, { method: 'POST' });
+  return res.json();
+};
+
+export const fetchAvailableDeliveries = async () => {
+  const res = await fetch(`${baseAPI}/drivers/api/deliveries/available/`);
+  return res.json();
+};
+
+export const fetchActiveDeliveries = async () => {
+  const res = await fetch(`${baseAPI}/drivers/api/deliveries/active/`);
+  return res.json();
+};
+
+export const acceptDelivery = async (deliveryId: number) => {
+  const res = await fetch(`${baseAPI}/drivers/api/deliveries/${deliveryId}/accept/`, { method: 'POST' });
+  return res.json();
+};
+
+export const rejectDeliveryNew = async (deliveryId: number, reason = '') => {
+  const res = await fetch(`${baseAPI}/drivers/api/deliveries/${deliveryId}/reject/`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ reason })
+  });
+  return res.json();
+};
   
