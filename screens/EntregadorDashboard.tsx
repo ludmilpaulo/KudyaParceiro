@@ -16,6 +16,8 @@ Notifications.setNotificationHandler({
     shouldShowAlert: true,
     shouldPlaySound: true,
     shouldSetBadge: false,
+    shouldShowBanner: true,
+    shouldShowList: true,
   }),
 });
 
@@ -156,7 +158,7 @@ const EntregadorDashboard = () => {
         title: "Novo Pedido",
         body: "Você tem novos pedidos prontos para retirada.",
       },
-      trigger: { seconds: 1 },
+      trigger: null,
     });
   };
 

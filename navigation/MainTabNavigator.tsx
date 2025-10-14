@@ -26,7 +26,7 @@ const MainTabNavigator = () => {
           height: 75,
         },
       }}
-      tabBar={(props) => (
+      tabBar={(props: any) => (
         <View style={styles.tabBarContainer}>
           <LinearGradient
             colors={["#FCD34D", "#3B82F6"]}
@@ -41,7 +41,7 @@ const MainTabNavigator = () => {
         name="Home"
         component={EntregadorDashboard}
         options={{
-          tabBarIcon: ({ color, size }) => (
+          tabBarIcon: ({ color, size }: { color: string; size: number }) => (
             <AntDesign name="home" color={color} size={size} />
           ),
         }}
@@ -50,7 +50,7 @@ const MainTabNavigator = () => {
         name="Acompanhar"
         component={RestaurantMap}
         options={{
-          tabBarIcon: ({ color, size }) => (
+          tabBarIcon: ({ color, size }: { color: string; size: number }) => (
             <Ionicons name="car" color={color} size={size} />
           ),
         }}
@@ -59,7 +59,7 @@ const MainTabNavigator = () => {
         name="Levar Pao client"
         component={CustomerDelivery}
         options={{
-          tabBarIcon: ({ color, size }) => (
+          tabBarIcon: ({ color, size }: { color: string; size: number }) => (
             <Feather name="shopping-bag" color={color} size={size} />
           ),
         }}
@@ -68,7 +68,7 @@ const MainTabNavigator = () => {
         name="Conta"
         component={AccountScreen}
         options={{
-          tabBarIcon: ({ color, size }) => (
+          tabBarIcon: ({ color, size }: { color: string; size: number }) => (
             <Feather name="user" color={color} size={size} />
           ),
         }}
