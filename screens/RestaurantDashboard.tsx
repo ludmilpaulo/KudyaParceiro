@@ -11,6 +11,7 @@ import Screen from '../components/Screen';
 import { LinearGradient } from 'expo-linear-gradient';
 import { HelpCircle } from 'react-native-feather';
 import HelpGuideModal from '../components/HelpGuideModal';
+import { analytics } from '../utils/mixpanel';
 
 const RestaurantDashboard: React.FC = () => {
   const user = useSelector(selectUser);
@@ -62,14 +63,21 @@ const RestaurantDashboard: React.FC = () => {
   ];
 
   useEffect(() => {
+    // Track screen view
+    analytics.trackScreenView('Restaurant Dashboard', { user_id: user?.user_id });
+    
     const fetchData = async () => {
       if (user?.user_id) {
         try {
           setLoading(true);
           const data = await fetchFornecedorData(user.user_id);
           setFornecedor(data);
+          if (data) {
+            analytics.track('Restaurant Data Loaded', { restaurant_name: data.name });
+          }
         } catch (error) {
           setError('Ocorreu um erro ao buscar os dados');
+          analytics.trackError('Restaurant Data Load Failed', { error: String(error), user_id: user.user_id });
           console.error('Fetch Fornecedor Data Error:', error); // Debugging statement
         } finally {
           setLoading(false);

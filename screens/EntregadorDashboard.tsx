@@ -10,6 +10,7 @@ import { UserOrder } from "../services/ordertypes";
 import * as Location from 'expo-location';
 import { Audio } from 'expo-av';
 import { calculateDistance } from "../utils/distance";
+import { analytics } from "../utils/mixpanel";
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -87,6 +88,10 @@ const EntregadorDashboard = () => {
       setUserOrder(filteredOrders);
 
       if (filteredOrders.length > 0 && !routes.some(route => route.name === "CustomerDelivery" || route.name === "RestaurantMap")) {
+        analytics.track('New Orders Available', {
+          order_count: filteredOrders.length,
+          user_type: 'driver'
+        });
         Vibration.vibrate(2000); // Vibrate for 2 seconds
         await playSound();
         await sendPushNotification();
@@ -94,6 +99,7 @@ const EntregadorDashboard = () => {
     } catch (error) {
       if (error instanceof Error) {
         console.error("Erro ao buscar dados do pedido:", error.message);
+        analytics.trackError('Driver Orders Fetch Failed', { error: error.message });
       } else {
         console.error("Erro desconhecido ao buscar dados do pedido");
       }

@@ -1,5 +1,5 @@
 // screens/LoginScreenUser.tsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, ActivityIndicator, Alert, Image, StyleSheet } from 'react-native';
 import { useNavigation, NavigationProp } from '@react-navigation/native';
 import { useDispatch } from 'react-redux';
@@ -10,6 +10,7 @@ import { loginUserService } from '../services/authService';
 import { loginUser } from '../redux/slices/authSlice';
 import ForgotPasswordModal from '../components/ForgotPasswordModal';
 import { RootStackParamList } from '../services/types';
+import { analytics } from '../utils/mixpanel';
 
 
 const LoginScreenUser = () => {
@@ -22,6 +23,10 @@ const LoginScreenUser = () => {
   const [loading, setLoading] = useState(false);
   const [showForgotPasswordModal, setShowForgotPasswordModal] = useState(false);
 
+  useEffect(() => {
+    analytics.trackScreenView('Partner Login Screen');
+  }, []);
+
   const toggleForgotPasswordModal = () => {
     setShowForgotPasswordModal(prev => !prev);
   };
@@ -32,6 +37,13 @@ const LoginScreenUser = () => {
       const response = await loginUserService(username, password);
       console.log('Response received:', response);
       dispatch(loginUser(response)); // Assume loginUser action updates the Redux state accordingly
+      
+      const userType = response.is_driver ? 'driver' : 'restaurant';
+      analytics.trackLogin(response.user_id?.toString() || username, {
+        user_type: userType,
+        platform: 'partner-mobile'
+      });
+      
       Alert.alert('Sucesso', 'Você se conectou com sucesso!');
 
       console.log('is_customer:', response.is_customer);
@@ -47,6 +59,7 @@ const LoginScreenUser = () => {
       }
     } catch (error: any) {
       console.error(error);
+      analytics.trackError('Partner Login Failed', { username, error: error?.message });
       Alert.alert('Erro', error.message || 'Falha ao entrar. Por favor, tente novamente.');
     } finally {
       setLoading(false);

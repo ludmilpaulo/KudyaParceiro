@@ -9,6 +9,7 @@ import { MotiView } from 'moti';
 import { loginUser } from "../redux/slices/authSlice"; // Ensure correct path
 import * as ImagePicker from 'expo-image-picker';
 import axios from 'axios';
+import { analytics } from "../utils/mixpanel";
 
 export interface SignupData {
   username: string;
@@ -61,11 +62,14 @@ const SignupScreen: React.FC = () => {
 
   const fetchCategories = async () => {
     setLoadingCategories(true);
+    analytics.track('Categories Fetch Started');
     try {
       const response = await axios.get('https://www.kudya.shop/store/store-categories/');
       setCategories(response.data);
+      analytics.track('Categories Loaded', { count: response.data.length });
     } catch (error) {
       console.error('Error fetching categories:', error);
+      analytics.trackError('Categories Load Failed', { error: String(error) });
       Alert.alert('Erro', 'Não foi possível carregar as categorias');
     } finally {
       setLoadingCategories(false);
@@ -100,10 +104,18 @@ const SignupScreen: React.FC = () => {
     // Validate category selection for parceiro role
     if (role === 'parceiro' && !selectedCategory) {
       Alert.alert("Categoria Necessária", "Por favor, selecione uma categoria para continuar.");
+      analytics.trackError('Signup Failed - No Category Selected', { role });
       return;
     }
     
     setLoading(true);
+    
+    // Track signup attempt
+    analytics.track('Signup Attempt', {
+      role,
+      has_category: !!selectedCategory,
+    });
+    
     try {
       const dataToSend = { 
         ...signupData, 
@@ -114,14 +126,24 @@ const SignupScreen: React.FC = () => {
       console.log("Received", data);
 
       if (status === 200 || status === 201) {
+        // Track successful signup
+        analytics.trackSignup(data.user_id || data.id, {
+          username: signupData.username,
+          email: signupData.email,
+          role,
+          category_id: selectedCategory,
+        });
+        
         dispatch(loginUser(data));
         Alert.alert("Sucesso", "Você se cadastrou com sucesso.");
         navigation.navigate(role === 'restaurant' ? 'RestaurantDashboard' : role === 'entregador' ? 'EntregadorDashboard' : 'ParceiroDashboard');
       } else {
+        analytics.trackError('Signup Failed', { status, role, message: data.message });
         Alert.alert("Falha no Cadastro", data.message || "Por favor, tente novamente.");
       }
     } catch (error) {
       console.error("Signup error:", error);
+      analytics.trackError('Signup Network Error', { error: String(error), role });
       Alert.alert("Erro de Rede", "Não foi possível conectar. Por favor, tente novamente.");
     } finally {
       setLoading(false);
