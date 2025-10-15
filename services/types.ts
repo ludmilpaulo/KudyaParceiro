@@ -1,7 +1,7 @@
 import { ReactNode } from "react";
 
 
-export const baseAPI: string = "https://kudya.pythonanywhere.com";
+export const baseAPI: string = "https://www.kudya.store";
 
 
 
