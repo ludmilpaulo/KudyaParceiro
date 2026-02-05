@@ -9,6 +9,7 @@ import { MotiView } from 'moti';
 import { loginUser } from "../redux/slices/authSlice"; // Ensure correct path
 import * as ImagePicker from 'expo-image-picker';
 import axios from 'axios';
+import { baseAPI } from "../services/types";
 import { analytics } from "../utils/mixpanel";
 
 export interface SignupData {
@@ -64,7 +65,7 @@ const SignupScreen: React.FC = () => {
     setLoadingCategories(true);
     analytics.track('Categories Fetch Started');
     try {
-      const response = await axios.get('https://www.kudya.shop/store/store-categories/');
+      const response = await axios.get(`${baseAPI}/store/store-categories/`);
       setCategories(response.data);
       analytics.track('Categories Loaded', { count: response.data.length });
     } catch (error) {
