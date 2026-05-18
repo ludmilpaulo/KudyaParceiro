@@ -9,6 +9,7 @@ import UserProfile from "../screens/UserProfile";
 import RestaurantMap from "../screens/RestaurantMap";
 import CustomerDelivery from "../screens/CustomerDelivery";
 import AccountScreen from "../screens/AccountScreen";
+import DriverTasksScreen from "../screens/DriverTasksScreen";
 
 const Tab = createBottomTabNavigator();
 
@@ -43,6 +44,15 @@ const MainTabNavigator = () => {
         options={{
           tabBarIcon: ({ color, size }: { color: string; size: number }) => (
             <AntDesign name="home" color={color} size={size} />
+          ),
+        }}
+      />
+      <Tab.Screen
+        name="Rides"
+        component={DriverTasksScreen}
+        options={{
+          tabBarIcon: ({ color, size }: { color: string; size: number }) => (
+            <Ionicons name="navigate" color={color} size={size} />
           ),
         }}
       />

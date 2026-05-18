@@ -27,8 +27,8 @@ const EntregadorDashboard = () => {
   const [loading, setLoading] = useState(false);
   const [isOnline, setIsOnline] = useState(false);
   const [location, setLocation] = useState<Location.LocationObject | null>(null);
-  const locationIntervalRef = useRef<NodeJS.Timeout | null>(null);
-  const fetchDataIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const locationIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const fetchDataIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const user = useSelector(selectUser);
   const navigation = useNavigation<any>();
