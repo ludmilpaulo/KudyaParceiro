@@ -22,7 +22,7 @@ export default function DriverTasksScreen() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
-  const headers: Record<string, string> = token ? { Authorization: `Token ${token}` } : {};
+  const headers: Record<string, string> = token ? { Authorization: `Bearer ${token}` } : {};
 
   const load = useCallback(async () => {
     try {

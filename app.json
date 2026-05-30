@@ -2,7 +2,8 @@
   "expo": {
     "name": "Kudya Parceiro",
     "slug": "kudya-parceiro",
-    "version": "1.0.0",
+    "scheme": "kudyaparceiro",
+    "version": "1.0.1",
     "orientation": "portrait",
     "icon": "./assets/azul.png",
     "userInterfaceStyle": "light",
@@ -34,7 +35,7 @@
         "LOCATION"
       ],
       "package": "com.ludmil.KudyaParceiro",
-      "versionCode": 10
+      "versionCode": 11
     },
     "web": {
       "favicon": "./assets/azul.png"

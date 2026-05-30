@@ -9,6 +9,8 @@ import { MotiView } from 'moti';
 import { loginUserService } from '../services/authService';
 import { loginUser } from '../redux/slices/authSlice';
 import ForgotPasswordModal from '../components/ForgotPasswordModal';
+import SocialLoginButtons from '../components/SocialLoginButtons';
+import type { SocialAuthResult } from '../services/socialAuth';
 import { RootStackParamList } from '../services/types';
 import { analytics } from '../utils/mixpanel';
 
@@ -35,28 +37,8 @@ const LoginScreenUser = () => {
     setLoading(true);
     try {
       const response = await loginUserService(username, password);
-      console.log('Response received:', response);
-      dispatch(loginUser(response)); // Assume loginUser action updates the Redux state accordingly
-      
-      const userType = response.is_driver ? 'driver' : 'restaurant';
-      analytics.trackLogin(response.user_id?.toString() || username, {
-        user_type: userType,
-        platform: 'partner-mobile'
-      });
-      
-      Alert.alert('Sucesso', 'Você se conectou com sucesso!');
-
-      console.log('is_customer:', response.is_customer);
-      console.log('is_driver:', response.is_driver);
-
-      // Navigate based on the response
-      if (response.is_driver) {
-        navigation.navigate('HomeNavigator');
-      } else if (!response.is_customer && !response.is_driver) {
-        navigation.navigate('RestaurantDrawer');
-      } else {
-        // Default or other role navigation if necessary
-      }
+      dispatch(loginUser(response));
+      navigateAfterLogin(response);
     } catch (error: any) {
       console.error(error);
       analytics.trackError('Partner Login Failed', { username, error: error?.message });
@@ -68,6 +50,36 @@ const LoginScreenUser = () => {
 
   const togglePasswordVisibility = () => {
     setShowPassword(prevState => !prevState);
+  };
+
+  const navigateAfterLogin = (response: {
+    is_driver?: boolean;
+    is_customer?: boolean;
+    user_id?: number;
+    username?: string;
+  }) => {
+    const userType = response.is_driver ? 'driver' : 'restaurant';
+    analytics.trackLogin(response.user_id?.toString() || response.username || 'unknown', {
+      user_type: userType,
+      platform: 'partner-mobile',
+    });
+    Alert.alert('Sucesso', 'Você se conectou com sucesso!');
+    if (response.is_driver) {
+      navigation.navigate('HomeNavigator');
+    } else if (!response.is_customer && !response.is_driver) {
+      navigation.navigate('RestaurantDrawer');
+    }
+  };
+
+  const handleSocialSuccess = (result: SocialAuthResult) => {
+    if (!result.token) return;
+    dispatch(loginUser(result));
+    analytics.trackLogin(result.user_id?.toString() || result.username, {
+      user_type: result.is_driver ? 'driver' : 'restaurant',
+      platform: 'partner-mobile',
+      method: 'social',
+    });
+    navigateAfterLogin(result);
   };
 
   return (
@@ -113,6 +125,7 @@ const LoginScreenUser = () => {
         <TouchableOpacity onPress={handleSubmit} style={styles.loginButton} disabled={loading}>
           <Text style={styles.loginButtonText}>Entrar</Text>
         </TouchableOpacity>
+        <SocialLoginButtons onSuccess={handleSocialSuccess} disabled={loading} />
       </MotiView>
       {loading && (
         <View style={styles.loadingOverlay}>
