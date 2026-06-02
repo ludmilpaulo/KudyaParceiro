@@ -41,20 +41,30 @@ export const loginUserService = async (
   username: string,
   password: string,
 ): Promise<AuthSessionPayload> => {
-  const response = await fetch(`${baseAPI}/api/auth/login/`, {
-    method: 'POST',
-    headers: {
-      Accept: 'application/json',
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ username, password }),
-  });
+  let response: Response;
+  try {
+    response = await fetch(`${baseAPI}/api/auth/login/`, {
+      method: 'POST',
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ username, password }),
+    });
+  } catch {
+    throw new Error('Sem ligação ao servidor. Verifique a internet e tente novamente.');
+  }
 
-  const data = await response.json();
+  let data: Record<string, unknown> = {};
+  try {
+    data = await response.json();
+  } catch {
+    throw new Error('Servidor indisponível. Tente novamente mais tarde.');
+  }
 
   if (!response.ok) {
     throw new Error(
-      data.detail || data.message || 'Falha ao entrar. Por favor, tente novamente.',
+      String(data.detail || data.message || 'Falha ao entrar. Por favor, tente novamente.'),
     );
   }
 

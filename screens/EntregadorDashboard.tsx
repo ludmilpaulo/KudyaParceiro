@@ -37,19 +37,28 @@ const EntregadorDashboard = () => {
 
   const routes = useNavigationState(state => state.routes);
 
+  const parseRestaurantCoords = (location: unknown): { latitude: number; longitude: number } | null => {
+    if (typeof location !== 'string' || !location.includes(',')) {
+      return null;
+    }
+    const [lat, lng] = location.split(',').map(Number);
+    if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
+      return null;
+    }
+    return { latitude: lat, longitude: lng };
+  };
+
   const getUserData = async () => {
+    if (!user?.user_id) return;
     try {
-      const profile = await getDriverProfile(user?.user_id, dispatch);
-      if (profile.customer_detais.avatar == null) {
-        alert("Por favor, preencha seus dados");
-        navigation.navigate("UserProfile");
+      const profile = await getDriverProfile(user.user_id, dispatch);
+      const avatar = profile?.customer_detais?.avatar ?? profile?.customer_details?.avatar;
+      if (profile && avatar == null) {
+        Alert.alert('Perfil incompleto', 'Por favor, preencha seus dados.');
+        navigation.navigate('UserProfile');
       }
     } catch (error) {
-      if (error instanceof Error) {
-        alert(error.message);
-      } else {
-        alert("Ocorreu um erro desconhecido");
-      }
+      console.error('Failed to load driver profile:', error);
     }
   };
 
@@ -78,9 +87,11 @@ const EntregadorDashboard = () => {
       console.log('Orders fetched:', orders);
 
       const filteredOrders = orders.filter(order => {
-        const [latitude, longitude] = order.restaurant.location.split(',').map(Number);
-        const orderLocation = { latitude, longitude };
-        const distance = calculateDistance(location?.coords || { latitude: 0, longitude: 0 }, orderLocation);
+        const orderLocation = parseRestaurantCoords(order?.restaurant?.location);
+        if (!orderLocation || !location?.coords) {
+          return false;
+        }
+        const distance = calculateDistance(location.coords, orderLocation);
         return distance <= 38;
       });
 

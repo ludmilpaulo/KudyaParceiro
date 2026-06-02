@@ -21,6 +21,11 @@ export function normalizeAuthResponse(data: Record<string, unknown>): AuthSessio
   if (!access) {
     throw new Error(String(data.detail || data.message || 'Token não retornado.'));
   }
+  const user = data.user as { role?: string } | undefined;
+  const role = String(user?.role || data.role || '').toLowerCase();
+  const is_driver = Boolean(data.is_driver) || role === 'driver';
+  const is_customer =
+    (Boolean(data.is_customer) || role === 'customer') && !is_driver && role !== 'restaurant' && role !== 'merchant';
   return {
     access,
     refresh,
@@ -28,10 +33,10 @@ export function normalizeAuthResponse(data: Record<string, unknown>): AuthSessio
     access_token: access,
     api_token: data.api_token ? String(data.api_token) : undefined,
     auth_scheme: 'Bearer',
-    user_id: Number(data.user_id),
-    username: String(data.username || ''),
-    is_customer: Boolean(data.is_customer),
-    is_driver: Boolean(data.is_driver),
+    user_id: Number(data.user_id ?? user?.id ?? 0),
+    username: String(data.username || user?.email || ''),
+    is_customer,
+    is_driver,
     message: String(data.message || 'Login com sucesso'),
     user: data.user as Record<string, unknown> | undefined,
   };

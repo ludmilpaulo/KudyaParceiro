@@ -3,7 +3,7 @@ import { ReactNode } from "react";
 
 export const baseAPI: string =
   (typeof process !== "undefined" && (process.env?.EXPO_PUBLIC_BASE_API || process.env?.NEXT_PUBLIC_BASE_API)) ||
-  "https://www.kudya.store";
+  "https://kudya-api.onrender.com";
 
 
 

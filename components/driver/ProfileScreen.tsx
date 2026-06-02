@@ -20,16 +20,20 @@ const ProfileScreen = () => {
 
   useEffect(() => {
     const fetchProfileData = async () => {
+      if (!user?.user_id) return;
       try {
         const response = await axios.post(`${baseAPI}/driver/profile/`, { user_id: user.user_id });
-        setProfileData(response.data.customer_detais);
+        const details = response.data?.customer_detais ?? response.data?.customer_details;
+        if (details && typeof details === 'object') {
+          setProfileData(prev => ({ ...prev, ...details }));
+        }
       } catch (error) {
         console.error('Error fetching profile data', error);
       }
     };
 
     fetchProfileData();
-  }, [user?.token]);
+  }, [user?.user_id, user?.token]);
 
   const pickImage = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({

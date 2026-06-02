@@ -7,11 +7,12 @@ import { Eye, EyeOff } from 'react-native-feather';
 import { LinearGradient } from 'expo-linear-gradient';
 import { MotiView } from 'moti';
 import { loginUserService } from '../services/authService';
-import { loginUser } from '../redux/slices/authSlice';
+import { loginUser, logoutUser } from '../redux/slices/authSlice';
 import ForgotPasswordModal from '../components/ForgotPasswordModal';
 import SocialLoginButtons from '../components/SocialLoginButtons';
 import type { SocialAuthResult } from '../services/socialAuth';
 import { RootStackParamList } from '../services/types';
+import { canUsePartnerApp } from '../utils/partnerRoles';
 import { analytics } from '../utils/mixpanel';
 
 
@@ -57,18 +58,22 @@ const LoginScreenUser = () => {
     is_customer?: boolean;
     user_id?: number;
     username?: string;
+    user?: Record<string, unknown>;
   }) => {
+    if (!canUsePartnerApp(response as any)) {
+      Alert.alert(
+        'Conta não suportada',
+        'Esta aplicação é para parceiros (restaurantes) e entregadores. Use a app Kudya para clientes.',
+      );
+      dispatch(logoutUser());
+      return;
+    }
     const userType = response.is_driver ? 'driver' : 'restaurant';
     analytics.trackLogin(response.user_id?.toString() || response.username || 'unknown', {
       user_type: userType,
       platform: 'partner-mobile',
     });
     Alert.alert('Sucesso', 'Você se conectou com sucesso!');
-    if (response.is_driver) {
-      navigation.navigate('HomeNavigator');
-    } else if (!response.is_customer && !response.is_driver) {
-      navigation.navigate('RestaurantDrawer');
-    }
   };
 
   const handleSocialSuccess = (result: SocialAuthResult) => {

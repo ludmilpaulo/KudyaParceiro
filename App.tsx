@@ -8,6 +8,7 @@ import { TailwindProvider } from "tailwindcss-react-native";
 import { store, persistor } from "./redux/store"; // Ensure correct import path
 import { PersistGate } from "redux-persist/integration/react";
 import AppNavigator from "./navigation/AppNavigator";
+import ErrorBoundary from "./components/ErrorBoundary";
 import { analytics } from "./utils/mixpanel";
 
 
@@ -21,13 +22,15 @@ export default function App() {
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <Provider store={store}>
-        <TailwindProvider>
-          <PersistGate loading={null} persistor={persistor}>
-         <AppNavigator />
-          </PersistGate>
-        </TailwindProvider>
-      </Provider>
+      <ErrorBoundary>
+        <Provider store={store}>
+          <TailwindProvider>
+            <PersistGate loading={null} persistor={persistor}>
+              <AppNavigator />
+            </PersistGate>
+          </TailwindProvider>
+        </Provider>
+      </ErrorBoundary>
     </GestureHandlerRootView>
   );
 }

@@ -1,8 +1,7 @@
 import { baseAPI } from './types';
 import { UserOrder } from './ordertypes';
-import { logoutUser } from "../redux/slices/authSlice";
 
-export const getDriverProfile = async (userId: string, dispatch: any) => {
+export const getDriverProfile = async (userId: string, _dispatch?: unknown) => {
   try {
     const response = await fetch(`${baseAPI}/driver/profile/`, {
       method: 'POST',
@@ -12,32 +11,29 @@ export const getDriverProfile = async (userId: string, dispatch: any) => {
       },
       body: JSON.stringify({ user_id: userId }),
     });
-    const responseJson = await response.json();
-    return responseJson;
-  } catch (error) {
-    if (error instanceof Error) {
-      dispatch(logoutUser()); // Log the user out
-      throw new Error('Falha ao buscar perfil do motorista: ' + error.message);
-    } else {
-      dispatch(logoutUser()); // Log the user out
-      throw new Error('Falha ao buscar perfil do motorista: erro desconhecido');
+    if (!response.ok) {
+      return null;
     }
+    try {
+      return await response.json();
+    } catch {
+      return null;
+    }
+  } catch {
+    return null;
   }
 };
 
-export const getDriverOrders = async (dispatch: any) => {
+export const getDriverOrders = async (_dispatch?: unknown): Promise<UserOrder[]> => {
   try {
     const response = await fetch(`${baseAPI}/driver/orders/ready/`);
-    const { orders }: { orders: UserOrder[] } = await response.json();
-    return orders;
-  } catch (error) {
-    if (error instanceof Error) {
-      dispatch(logoutUser()); // Log the user out
-      throw new Error('Falha ao buscar pedidos do motorista: ' + error.message);
-    } else {
-      dispatch(logoutUser()); // Log the user out
-      throw new Error('Falha ao buscar pedidos do motorista: erro desconhecido');
+    if (!response.ok) {
+      return [];
     }
+    const body = await response.json();
+    return Array.isArray(body?.orders) ? body.orders : [];
+  } catch {
+    return [];
   }
 };
 
@@ -53,12 +49,16 @@ export const updateDriverLocation = async (userId: string, access_token:string, 
     });
 
     if (!response.ok) {
-      throw new Error('Erro ao atualizar a localização');
+      return null;
     }
 
-    return await response.json();
-  } catch (error) {
-    throw new Error('Falha ao atualizar a localização do motorista: ' + (error instanceof Error ? error.message : 'erro desconhecido'));
+    try {
+      return await response.json();
+    } catch {
+      return null;
+    }
+  } catch {
+    return null;
   }
 };
 
@@ -83,9 +83,6 @@ export const updateDriverProfile = async (formData: FormData) => {
   }
 };
 
-
-
-// Fetch the ongoing order for the driver
 export const fetchOngoingOrder = async (accessToken: string) => {
   try {
     const response = await fetch(`${baseAPI}/driver/ongoing-order/`, {
@@ -96,15 +93,15 @@ export const fetchOngoingOrder = async (accessToken: string) => {
       },
       body: JSON.stringify({ access_token: accessToken }),
     });
-    const result = await response.json();
-    return result;
-  } catch (error) {
-    console.error("Failed to fetch ongoing order:", error);
-    throw error;
+    if (!response.ok) {
+      return { status: 'error' };
+    }
+    return await response.json();
+  } catch {
+    return { status: 'error' };
   }
 };
 
-// Accept an order
 export const acceptOrder = async (orderId: number, accessToken: string) => {
   try {
     const response = await fetch(`${baseAPI}/driver/order/pick/`, {
@@ -115,15 +112,13 @@ export const acceptOrder = async (orderId: number, accessToken: string) => {
       },
       body: JSON.stringify({ order_id: orderId, access_token: accessToken }),
     });
-    const result = await response.json();
-    return result;
+    return await response.json();
   } catch (error) {
     console.error("Failed to accept order:", error);
     throw error;
   }
 };
 
-// Reject an order
 export const rejectOrder = async (orderId: number, accessToken: string) => {
   try {
     const response = await fetch(`${baseAPI}/driver/reject-order/`, {
@@ -134,15 +129,12 @@ export const rejectOrder = async (orderId: number, accessToken: string) => {
       },
       body: JSON.stringify({ order_id: orderId, access_token: accessToken }),
     });
-    const result = await response.json();
-    return result;
+    return await response.json();
   } catch (error) {
     console.error("Failed to reject order:", error);
     throw error;
   }
 };
-
-
 
 interface VerifyOrderParams {
   access_token: string;
@@ -166,36 +158,32 @@ export const verifyOrder = async ({ access_token, order_id, pin, received_items 
         received_items,
       }),
     });
-    const result = await response.json();
-    return result;
+    return await response.json();
   } catch (error) {
     console.error('Failed to verify order:', error);
     throw error;
   }
 };
 
-
-
-// driverService.ts
 export const fetchVerifiedOrder = async (accessToken: string) => {
-    try {
-      const response = await fetch(`${baseAPI}/driver/verified-order/`, {
-        method: 'POST',
-        headers: {
-          Accept: 'application/json',
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ access_token: accessToken }),
-      });
-      const result = await response.json();
-      return result;
-    } catch (error) {
-      console.error("Failed to fetch verified order:", error);
-      throw error;
+  try {
+    const response = await fetch(`${baseAPI}/driver/verified-order/`, {
+      method: 'POST',
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ access_token: accessToken }),
+    });
+    if (!response.ok) {
+      return { status: 'error' };
     }
-  };
+    return await response.json();
+  } catch {
+    return { status: 'error' };
+  }
+};
 
-// New delivery API (modern endpoints)
 export const toggleOnline = async (driverId: number) => {
   const res = await fetch(`${baseAPI}/drivers/api/drivers/${driverId}/toggle_online/`, { method: 'POST' });
   return res.json();
@@ -229,4 +217,3 @@ export const rejectDeliveryNew = async (deliveryId: number, reason = '') => {
   });
   return res.json();
 };
-  

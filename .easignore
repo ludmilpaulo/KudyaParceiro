@@ -1,0 +1,11 @@
+node_modules/
+android/
+ios/
+.git/
+*.md
+!README.md
+.expo/
+dist/
+coverage/
+**/*.test.ts
+**/*.test.tsx
