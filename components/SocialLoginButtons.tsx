@@ -13,24 +13,23 @@ import {
   SocialAuthResult,
   SocialProvider,
 } from '../services/socialAuth';
+import { useTranslation } from '../hooks/useTranslation';
+import type { TranslationKey } from '../configs/i18n';
 
 type Props = {
   onSuccess: (result: SocialAuthResult) => void;
   disabled?: boolean;
 };
 
-const PROVIDERS: {
-  id: SocialProvider;
-  label: string;
-  icon: React.ReactNode;
-}[] = [
-  { id: 'google', label: 'Continuar com Google', icon: <AntDesign name="google" size={18} color="#DB4437" /> },
-  { id: 'facebook', label: 'Continuar com Facebook', icon: <FontAwesome5 name="facebook" size={18} color="#1877F2" /> },
-  { id: 'instagram', label: 'Continuar com Instagram', icon: <FontAwesome5 name="instagram" size={18} color="#E4405F" /> },
-  { id: 'tiktok', label: 'Continuar com TikTok', icon: <FontAwesome5 name="tiktok" size={18} color="#000" /> },
+const PROVIDERS: { id: SocialProvider; labelKey: TranslationKey; icon: React.ReactNode }[] = [
+  { id: 'google', labelKey: 'continueGoogle', icon: <AntDesign name="google" size={18} color="#DB4437" /> },
+  { id: 'facebook', labelKey: 'continueFacebook', icon: <FontAwesome5 name="facebook" size={18} color="#1877F2" /> },
+  { id: 'instagram', labelKey: 'continueInstagram', icon: <FontAwesome5 name="instagram" size={18} color="#E4405F" /> },
+  { id: 'tiktok', labelKey: 'continueTiktok', icon: <FontAwesome5 name="tiktok" size={18} color="#000" /> },
 ];
 
 export default function SocialLoginButtons({ onSuccess, disabled }: Props) {
+  const { t } = useTranslation();
   const [loadingProvider, setLoadingProvider] = useState<SocialProvider | null>(null);
   const [googleRequest, googleResponse, promptGoogle] = useGoogleAuth();
   const [fbRequest, fbResponse, promptFacebook] = useFacebookAuth();
@@ -42,7 +41,7 @@ export default function SocialLoginButtons({ onSuccess, disabled }: Props) {
           setLoadingProvider('google');
           onSuccess(await completeGoogleAuth(googleResponse.authentication));
         } catch (e: unknown) {
-          Alert.alert('Erro', e instanceof Error ? e.message : 'Falha ao entrar.');
+          Alert.alert(t('error'), e instanceof Error ? e.message : t('loginFailed'));
         } finally {
           setLoadingProvider(null);
         }
@@ -57,7 +56,7 @@ export default function SocialLoginButtons({ onSuccess, disabled }: Props) {
           setLoadingProvider('facebook');
           onSuccess(await completeFacebookAuth(fbResponse.authentication));
         } catch (e: unknown) {
-          Alert.alert('Erro', e instanceof Error ? e.message : 'Falha ao entrar.');
+          Alert.alert(t('error'), e instanceof Error ? e.message : t('loginFailed'));
         } finally {
           setLoadingProvider(null);
         }
@@ -94,7 +93,7 @@ export default function SocialLoginButtons({ onSuccess, disabled }: Props) {
       }
     } catch (e: unknown) {
       setLoadingProvider(null);
-      Alert.alert('Erro', e instanceof Error ? e.message : 'Falha ao entrar.');
+      Alert.alert(t('error'), e instanceof Error ? e.message : t('loginFailed'));
     }
   };
 
@@ -102,7 +101,7 @@ export default function SocialLoginButtons({ onSuccess, disabled }: Props) {
 
   return (
     <View style={tw`mt-4`}>
-      <Text style={tw`text-center text-gray-500 mb-3`}>Ou continue com</Text>
+      <Text style={tw`text-center text-gray-500 mb-3`}>{t('orContinueWith')}</Text>
       {!anyConfigured ? (
         <Text style={tw`text-center text-xs text-gray-400 mb-2`}>
           Login social requer chaves OAuth na configuração do app.
@@ -123,7 +122,7 @@ export default function SocialLoginButtons({ onSuccess, disabled }: Props) {
             ) : (
               <>
                 <View style={tw`mr-2`}>{p.icon}</View>
-                <Text style={tw`font-semibold text-gray-800`}>{p.label}</Text>
+                <Text style={tw`font-semibold text-gray-800`}>{t(p.labelKey)}</Text>
               </>
             )}
           </TouchableOpacity>

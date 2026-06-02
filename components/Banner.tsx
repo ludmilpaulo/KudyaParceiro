@@ -3,6 +3,7 @@ import { View, Text, ImageBackground, TouchableOpacity, ScrollView, Image } from
 import tailwind from 'tailwind-react-native-classnames';
 import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
 import { useNavigation} from "@react-navigation/native";
+import { useTranslation } from '../hooks/useTranslation';
 import { SvgUri } from 'react-native-svg';
 interface Restaurant {
   location: {
@@ -29,6 +30,7 @@ interface BannerProps {
 
 const Banner: React.FC<BannerProps> = ({ title, backgroundImage, backgroundApp, restaurants, bottomImage, aboutText, userLocation }) => {
     const navigation = useNavigation<any>();
+    const { t } = useTranslation();
     return (
     <View style={tailwind`flex-1`}>
       <ScrollView style={tailwind`flex-grow-0`}>
@@ -40,7 +42,7 @@ const Banner: React.FC<BannerProps> = ({ title, backgroundImage, backgroundApp, 
             onPress={() => navigation.navigate("UserLogin")}
             activeOpacity={0.7}
           >
-            <Text style={tailwind`text-white text-lg`}>Peça seus favoritos agora</Text>
+            <Text style={tailwind`text-white text-lg`}>{t('orderFavorites')}</Text>
           </TouchableOpacity>
         </ImageBackground>
        

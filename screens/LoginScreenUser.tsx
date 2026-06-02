@@ -14,11 +14,14 @@ import type { SocialAuthResult } from '../services/socialAuth';
 import { RootStackParamList } from '../services/types';
 import { canUsePartnerApp } from '../utils/partnerRoles';
 import { analytics } from '../utils/mixpanel';
+import { useTranslation } from '../hooks/useTranslation';
+import LanguagePicker from '../components/LanguagePicker';
 
 
 const LoginScreenUser = () => {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const dispatch = useDispatch();
+  const { t } = useTranslation();
 
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -43,7 +46,7 @@ const LoginScreenUser = () => {
     } catch (error: any) {
       console.error(error);
       analytics.trackError('Partner Login Failed', { username, error: error?.message });
-      Alert.alert('Erro', error.message || 'Falha ao entrar. Por favor, tente novamente.');
+      Alert.alert(t('error'), error.message || t('loginFailed'));
     } finally {
       setLoading(false);
     }
@@ -61,10 +64,7 @@ const LoginScreenUser = () => {
     user?: Record<string, unknown>;
   }) => {
     if (!canUsePartnerApp(response as any)) {
-      Alert.alert(
-        'Conta não suportada',
-        'Esta aplicação é para parceiros (restaurantes) e entregadores. Use a app Kudya para clientes.',
-      );
+      Alert.alert(t('unsupportedAccount'), t('unsupportedAccountMessage'));
       dispatch(logoutUser());
       return;
     }
@@ -73,7 +73,7 @@ const LoginScreenUser = () => {
       user_type: userType,
       platform: 'partner-mobile',
     });
-    Alert.alert('Sucesso', 'Você se conectou com sucesso!');
+    Alert.alert(t('success'), t('loginSuccess'));
   };
 
   const handleSocialSuccess = (result: SocialAuthResult) => {
@@ -98,15 +98,16 @@ const LoginScreenUser = () => {
         <View style={styles.imageContainer}>
           <Image source={require('../assets/azul.png')} style={styles.logo} />
         </View>
-        <Text style={styles.title}>Faça login na sua conta</Text>
+        <LanguagePicker />
+        <Text style={styles.title}>{t('loginTitle')}</Text>
         <TouchableOpacity onPress={() => navigation.navigate('SignupScreen')}>
           <Text style={styles.signupLink}>
-            Não tem uma conta? <Text style={styles.signupText}>Cadastre-se aqui</Text>
+            {t('noAccount')} <Text style={styles.signupText}>{t('registerHere')}</Text>
           </Text>
         </TouchableOpacity>
         <View style={styles.inputContainer}>
           <TextInput
-            placeholder='Nome do usuário'
+            placeholder={t('username')}
             value={username}
             onChangeText={setUsername}
             style={styles.input}
@@ -115,7 +116,7 @@ const LoginScreenUser = () => {
         <View style={styles.inputContainer}>
           <TextInput
             value={password}
-            placeholder='Digite sua senha'
+            placeholder={t('passwordPlaceholder')}
             onChangeText={setPassword}
             secureTextEntry={!showPassword}
             style={styles.input}
@@ -125,10 +126,10 @@ const LoginScreenUser = () => {
           </TouchableOpacity>
         </View>
         <TouchableOpacity onPress={toggleForgotPasswordModal}>
-          <Text style={styles.forgotPasswordLink}>Esqueceu a senha?</Text>
+          <Text style={styles.forgotPasswordLink}>{t('forgotPassword')}</Text>
         </TouchableOpacity>
         <TouchableOpacity onPress={handleSubmit} style={styles.loginButton} disabled={loading}>
-          <Text style={styles.loginButtonText}>Entrar</Text>
+          <Text style={styles.loginButtonText}>{t('login')}</Text>
         </TouchableOpacity>
         <SocialLoginButtons onSuccess={handleSocialSuccess} disabled={loading} />
       </MotiView>

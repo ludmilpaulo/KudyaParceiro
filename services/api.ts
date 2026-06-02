@@ -1,5 +1,10 @@
 import axios from 'axios';
+import { getLanguage, detectDeviceLanguage } from '../configs/i18n';
 import { baseAPI } from './types';
+
+export function getDeviceLanguage(): string {
+  return getLanguage() || detectDeviceLanguage();
+}
 
 const API = axios.create({
   baseURL: baseAPI,
@@ -25,6 +30,7 @@ async function readPersistedAuth(): Promise<{ token?: string; refresh?: string }
 }
 
 API.interceptors.request.use(async (config) => {
+  config.headers['Accept-Language'] = getDeviceLanguage();
   const auth = await readPersistedAuth();
   if (auth?.token) {
     config.headers.Authorization = `Bearer ${auth.token}`;

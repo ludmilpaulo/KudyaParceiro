@@ -1,13 +1,15 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, ActivityIndicator, Alert } from 'react-native';
+import { View, Text, ActivityIndicator, Alert, TouchableOpacity } from 'react-native';
 import * as Location from 'expo-location';
 import tailwind from 'tailwind-react-native-classnames';
+import { useNavigation } from '@react-navigation/native';
 
 import type { AboutUsData, RestaurantJoin } from '../services/types';
 import { baseAPI } from '../services/types';
 
 import Banner from '../components/Banner';
 import { fetchAboutUsData } from '../services/information';
+import { useTranslation } from '../hooks/useTranslation';
 
 const fallbackLocation = {
   latitude: -25.747868,
@@ -15,6 +17,8 @@ const fallbackLocation = {
 };
 
 const JoinScreen = () => {
+  const navigation = useNavigation<any>();
+  const { t } = useTranslation();
   const [headerData, setHeaderData] = useState<AboutUsData | null>(null);
   const [restaurants, setRestaurants] = useState<RestaurantJoin[]>([]);
   const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number }>(fallbackLocation);
@@ -90,8 +94,14 @@ const JoinScreen = () => {
     userLocation={userLocation}
   />
 ) : (
-  <View style={tailwind`flex-1 justify-center items-center`}>
-    <Text style={tailwind`text-gray-600 text-lg`}>No data available</Text>
+  <View style={tailwind`flex-1 justify-center items-center px-6`}>
+    <Text style={tailwind`text-gray-600 text-lg mb-4 text-center`}>{t('noDataAvailable')}</Text>
+    <TouchableOpacity
+      style={tailwind`bg-blue-700 px-6 py-3 rounded-full`}
+      onPress={() => navigation.navigate('UserLogin')}
+    >
+      <Text style={tailwind`text-white text-lg font-semibold`}>{t('signIn')}</Text>
+    </TouchableOpacity>
   </View>
 )}
 

@@ -10,6 +10,7 @@ import { PersistGate } from "redux-persist/integration/react";
 import AppNavigator from "./navigation/AppNavigator";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { analytics } from "./utils/mixpanel";
+import { LanguageProvider } from "./contexts/LanguageContext";
 
 
 
@@ -26,7 +27,9 @@ export default function App() {
         <Provider store={store}>
           <TailwindProvider>
             <PersistGate loading={null} persistor={persistor}>
-              <AppNavigator />
+              <LanguageProvider>
+                <AppNavigator />
+              </LanguageProvider>
             </PersistGate>
           </TailwindProvider>
         </Provider>
