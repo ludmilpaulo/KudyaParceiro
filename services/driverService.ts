@@ -68,7 +68,6 @@ export const updateDriverProfile = async (formData: FormData) => {
       method: 'POST',
       headers: {
         Accept: 'application/json',
-        'Content-Type': 'multipart/form-data',
       },
       body: formData,
     });

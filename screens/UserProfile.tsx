@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import { View, Text, TextInput, TouchableOpacity, ActivityIndicator, Alert, Image, StyleSheet, SafeAreaView } from "react-native";
+import { View, Text, TextInput, TouchableOpacity, ActivityIndicator, Alert, Image, StyleSheet } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
 import * as ImagePicker from 'expo-image-picker';
 import { useSelector, useDispatch } from "react-redux";
@@ -12,10 +13,21 @@ const UserProfile: React.FC = () => {
   const navigation = useNavigation<any>();
   const dispatch = useDispatch();
   const user = useSelector(selectUser);
+  const profileUser = user?.user as {
+    first_name?: string;
+    last_name?: string;
+    phone?: string;
+  } | undefined;
 
-  const [firstName, setFirstName] = useState<string>(user?.first_name || "");
-  const [lastName, setLastName] = useState<string>(user?.last_name || "");
-  const [phone, setPhone] = useState<string>(user?.phone || "");
+  const [firstName, setFirstName] = useState<string>(
+    String(user?.first_name || profileUser?.first_name || ""),
+  );
+  const [lastName, setLastName] = useState<string>(
+    String(user?.last_name || profileUser?.last_name || ""),
+  );
+  const [phone, setPhone] = useState<string>(
+    String(user?.phone || profileUser?.phone || ""),
+  );
   const [address, setAddress] = useState<string>(user?.address || "");
   const [avatar, setAvatar] = useState<any>(null);
   const [loading, setLoading] = useState<boolean>(false);
@@ -53,7 +65,10 @@ const UserProfile: React.FC = () => {
       formData.append("last_name", lastName);
       formData.append("phone", phone);
       formData.append("address", address);
-      formData.append("access_token", user?.access_token);
+      formData.append(
+        "access_token",
+        String(user?.access_token || user?.token || user?.access || ""),
+      );
 
       if (avatar) {
         const localUri = avatar.uri;

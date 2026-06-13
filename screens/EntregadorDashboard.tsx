@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from "react";
-import { SafeAreaView, ScrollView, StyleSheet, Text, Vibration, View, ActivityIndicator, Switch, Alert } from "react-native";
+import { ScrollView, StyleSheet, Text, Vibration, View, ActivityIndicator, Switch, Alert } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import OrdersItem from "../components/OrdersItem";
-import * as Notifications from 'expo-notifications';
 import { useNavigation, useNavigationState } from "@react-navigation/native";
 import { useSelector, useDispatch } from "react-redux";
 import { selectUser, logoutUser } from "../redux/slices/authSlice";
@@ -11,16 +11,13 @@ import * as Location from 'expo-location';
 import { Audio } from 'expo-av';
 import { calculateDistance } from "../utils/distance";
 import { analytics } from "../utils/mixpanel";
+import {
+  configureNotificationHandler,
+  registerForPushNotificationsAsync,
+  scheduleLocalNotification,
+} from "../utils/localNotifications";
 
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowAlert: true,
-    shouldPlaySound: true,
-    shouldSetBadge: false,
-    shouldShowBanner: true,
-    shouldShowList: true,
-  }),
-});
+const PUSH_PROJECT_ID = 'f848ca4d-cf74-4e6b-b42d-107d533158b8';
 
 const EntregadorDashboard = () => {
   const [userOrder, setUserOrder] = useState<UserOrder[]>([]);
@@ -52,8 +49,10 @@ const EntregadorDashboard = () => {
     if (!user?.user_id) return;
     try {
       const profile = await getDriverProfile(user.user_id, dispatch);
-      const avatar = profile?.customer_detais?.avatar ?? profile?.customer_details?.avatar;
-      if (profile && avatar == null) {
+      const details = profile?.customer_detais ?? profile?.customer_details;
+      const avatar = details?.avatar;
+      const phone = details?.phone;
+      if (profile && avatar == null && !phone) {
         Alert.alert('Perfil incompleto', 'Por favor, preencha seus dados.');
         navigation.navigate('UserProfile');
       }
@@ -170,35 +169,22 @@ const EntregadorDashboard = () => {
   };
 
   const sendPushNotification = async () => {
-    await Notifications.scheduleNotificationAsync({
-      content: {
-        title: "Novo Pedido",
-        body: "Você tem novos pedidos prontos para retirada.",
-      },
-      trigger: null,
+    await scheduleLocalNotification({
+      title: "Novo Pedido",
+      body: "Você tem novos pedidos prontos para retirada.",
     });
   };
 
-  const registerForPushNotificationsAsync = async () => {
-    const { status: existingStatus } = await Notifications.getPermissionsAsync();
-    let finalStatus = existingStatus;
-
-    if (existingStatus !== 'granted') {
-      const { status } = await Notifications.requestPermissionsAsync();
-      finalStatus = status;
+  const registerPushNotifications = async () => {
+    await configureNotificationHandler();
+    const token = await registerForPushNotificationsAsync(PUSH_PROJECT_ID);
+    if (token) {
+      console.log(token);
     }
-
-    if (finalStatus !== 'granted') {
-      Alert.alert('Failed to get push token for push notification!');
-      return;
-    }
-
-    const token = (await Notifications.getExpoPushTokenAsync({ projectId: 'f848ca4d-cf74-4e6b-b42d-107d533158b8' })).data;
-    console.log(token);
   };
 
   useEffect(() => {
-    registerForPushNotificationsAsync();
+    void registerPushNotifications();
     getUserData();
     checkOngoingOrder();
 

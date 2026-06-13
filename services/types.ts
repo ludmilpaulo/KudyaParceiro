@@ -1,9 +1,8 @@
 import { ReactNode } from "react";
+import { getBaseApiUrl, getApiConnectionHint, resolveApiBaseUrl } from "../utils/apiClient";
 
-
-export const baseAPI: string =
-  (typeof process !== "undefined" && (process.env?.EXPO_PUBLIC_BASE_API || process.env?.NEXT_PUBLIC_BASE_API)) ||
-  "https://kudya-api.onrender.com";
+export const baseAPI = getBaseApiUrl();
+export { getApiConnectionHint, resolveApiBaseUrl, getBaseApiUrl };
 
 
 
@@ -49,6 +48,7 @@ export type UserDetails = {
     };
     total: number;
     status: string;
+    status_code: number;
     payment_status_restaurant : string;
     proof_of_payment_restaurant :string;
     original_price: string;

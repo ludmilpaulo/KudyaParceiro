@@ -1,10 +1,23 @@
 // screens/LoginScreenUser.tsx
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ActivityIndicator, Alert, Image, StyleSheet } from 'react-native';
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  ActivityIndicator,
+  Alert,
+  Image,
+  StyleSheet,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+} from 'react-native';
 import { useNavigation, NavigationProp } from '@react-navigation/native';
 import { useDispatch } from 'react-redux';
 import { Eye, EyeOff } from 'react-native-feather';
 import { LinearGradient } from 'expo-linear-gradient';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { MotiView } from 'moti';
 import { loginUserService } from '../services/authService';
 import { loginUser, logoutUser } from '../redux/slices/authSlice';
@@ -12,11 +25,18 @@ import ForgotPasswordModal from '../components/ForgotPasswordModal';
 import SocialLoginButtons from '../components/SocialLoginButtons';
 import type { SocialAuthResult } from '../services/socialAuth';
 import { RootStackParamList } from '../services/types';
-import { canUsePartnerApp } from '../utils/partnerRoles';
+import { canUsePartnerApp, canUseRiderApp, getUserRole } from '../utils/partnerRoles';
+import { showMessage } from '../utils/showMessage';
 import { analytics } from '../utils/mixpanel';
 import { useTranslation } from '../hooks/useTranslation';
 import LanguagePicker from '../components/LanguagePicker';
-
+import PartnerButton from '../components/ui/PartnerButton';
+import { theme } from '../configs/theme';
+import {
+  DEV_TEST_DOCTOR_LOGIN,
+  DEV_TEST_LOGIN_BUTTON_LABEL,
+  isDevLoginEnabled,
+} from '../configs/devTestLogin';
 
 const LoginScreenUser = () => {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
@@ -27,34 +47,12 @@ const LoginScreenUser = () => {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [loginError, setLoginError] = useState<string | null>(null);
   const [showForgotPasswordModal, setShowForgotPasswordModal] = useState(false);
 
   useEffect(() => {
     analytics.trackScreenView('Partner Login Screen');
   }, []);
-
-  const toggleForgotPasswordModal = () => {
-    setShowForgotPasswordModal(prev => !prev);
-  };
-
-  const handleSubmit = async () => {
-    setLoading(true);
-    try {
-      const response = await loginUserService(username, password);
-      dispatch(loginUser(response));
-      navigateAfterLogin(response);
-    } catch (error: any) {
-      console.error(error);
-      analytics.trackError('Partner Login Failed', { username, error: error?.message });
-      Alert.alert(t('error'), error.message || t('loginFailed'));
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const togglePasswordVisibility = () => {
-    setShowPassword(prevState => !prevState);
-  };
 
   const navigateAfterLogin = (response: {
     is_driver?: boolean;
@@ -63,17 +61,51 @@ const LoginScreenUser = () => {
     username?: string;
     user?: Record<string, unknown>;
   }) => {
-    if (!canUsePartnerApp(response as any)) {
-      Alert.alert(t('unsupportedAccount'), t('unsupportedAccountMessage'));
+    if (!canUsePartnerApp(response as Parameters<typeof canUsePartnerApp>[0]) && !canUseRiderApp(response as Parameters<typeof canUseRiderApp>[0])) {
+      const msg = t('unsupportedAccountMessage');
+      setLoginError(msg);
+      showMessage(t('unsupportedAccount'), msg);
       dispatch(logoutUser());
       return;
     }
-    const userType = response.is_driver ? 'driver' : 'restaurant';
+    setLoginError(null);
+    const role = getUserRole(response as Parameters<typeof getUserRole>[0]);
+    const userType = response.is_driver ? 'driver' : role === 'doctor' ? 'doctor' : 'partner';
     analytics.trackLogin(response.user_id?.toString() || response.username || 'unknown', {
       user_type: userType,
-      platform: 'partner-mobile',
+      platform: Platform.OS === 'web' ? 'partner-web' : 'partner-mobile',
     });
-    Alert.alert(t('success'), t('loginSuccess'));
+    if (Platform.OS !== 'web') {
+      showMessage(t('success'), t('loginSuccess'));
+    }
+  };
+
+  const handleSubmit = async () => {
+    if (!username.trim() || !password) {
+      const msg = t('fillAllFields');
+      setLoginError(msg);
+      showMessage(t('error'), msg);
+      return;
+    }
+    setLoading(true);
+    setLoginError(null);
+    try {
+      const response = await loginUserService(username, password);
+      dispatch(loginUser(response));
+      navigateAfterLogin(response);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : t('loginFailed');
+      setLoginError(message);
+      analytics.trackError('Partner Login Failed', { username, error: message });
+      showMessage(t('error'), message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleFillTestLogin = () => {
+    setUsername(DEV_TEST_DOCTOR_LOGIN.username);
+    setPassword(DEV_TEST_DOCTOR_LOGIN.password);
   };
 
   const handleSocialSuccess = (result: SocialAuthResult) => {
@@ -88,144 +120,267 @@ const LoginScreenUser = () => {
   };
 
   return (
-    <LinearGradient colors={['#FCB61A', '#0171CE']} style={styles.container}>
-      <MotiView
-        from={{ opacity: 0, translateY: -100 }}
-        animate={{ opacity: 1, translateY: 0 }}
-        transition={{ type: 'timing', duration: 500 }}
-        style={styles.formContainer}
-      >
-        <View style={styles.imageContainer}>
-          <Image source={require('../assets/azul.png')} style={styles.logo} />
-        </View>
-        <LanguagePicker />
-        <Text style={styles.title}>{t('loginTitle')}</Text>
-        <TouchableOpacity onPress={() => navigation.navigate('SignupScreen')}>
-          <Text style={styles.signupLink}>
-            {t('noAccount')} <Text style={styles.signupText}>{t('registerHere')}</Text>
-          </Text>
-        </TouchableOpacity>
-        <View style={styles.inputContainer}>
-          <TextInput
-            placeholder={t('username')}
-            value={username}
-            onChangeText={setUsername}
-            style={styles.input}
-          />
-        </View>
-        <View style={styles.inputContainer}>
-          <TextInput
-            value={password}
-            placeholder={t('passwordPlaceholder')}
-            onChangeText={setPassword}
-            secureTextEntry={!showPassword}
-            style={styles.input}
-          />
-          <TouchableOpacity onPress={togglePasswordVisibility} style={styles.eyeIcon}>
-            {showPassword ? <EyeOff width={20} height={20} color='#040405' /> : <Eye width={20} height={20} color='#040405' />}
-          </TouchableOpacity>
-        </View>
-        <TouchableOpacity onPress={toggleForgotPasswordModal}>
-          <Text style={styles.forgotPasswordLink}>{t('forgotPassword')}</Text>
-        </TouchableOpacity>
-        <TouchableOpacity onPress={handleSubmit} style={styles.loginButton} disabled={loading}>
-          <Text style={styles.loginButtonText}>{t('login')}</Text>
-        </TouchableOpacity>
-        <SocialLoginButtons onSuccess={handleSocialSuccess} disabled={loading} />
-      </MotiView>
+    <LinearGradient colors={[...theme.gradient.hero]} style={styles.flex}>
+      <SafeAreaView style={styles.flex}>
+        <KeyboardAvoidingView
+          style={styles.flex}
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        >
+          <ScrollView
+            contentContainerStyle={styles.scroll}
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}
+          >
+            <TouchableOpacity onPress={() => navigation.navigate('Join' as never)} style={styles.backBtn}>
+              <Text style={styles.backText}>←</Text>
+            </TouchableOpacity>
+
+            <MotiView
+              from={{ opacity: 0, translateY: 20 }}
+              animate={{ opacity: 1, translateY: 0 }}
+              transition={{ type: 'timing', duration: 500 }}
+              style={styles.card}
+            >
+              <View style={styles.cardHeader}>
+                <Image source={require('../assets/azul.png')} style={styles.logo} />
+                <LanguagePicker />
+              </View>
+
+              <Text style={styles.title}>{t('loginTitle')}</Text>
+              <Text style={styles.subtitle}>{t('loginSubtitle')}</Text>
+
+              <TouchableOpacity onPress={() => navigation.navigate('SignupScreen' as never)}>
+                <Text style={styles.signupLink}>
+                  {t('noAccount')}{' '}
+                  <Text style={styles.signupText}>{t('registerHere')}</Text>
+                </Text>
+              </TouchableOpacity>
+
+              <View style={styles.field}>
+                <Text style={styles.label}>{t('username')}</Text>
+                <TextInput
+                  placeholder={t('username')}
+                  placeholderTextColor={theme.colors.textMuted}
+                  value={username}
+                  onChangeText={setUsername}
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  style={styles.input}
+                />
+              </View>
+
+              {loginError ? (
+                <View style={styles.errorBanner}>
+                  <Text style={styles.errorBannerText}>{loginError}</Text>
+                </View>
+              ) : null}
+
+              <View style={styles.field}>
+                <Text style={styles.label}>{t('password')}</Text>
+                <View style={styles.passwordWrap}>
+                  <TextInput
+                    value={password}
+                    placeholder={t('passwordPlaceholder')}
+                    placeholderTextColor={theme.colors.textMuted}
+                    onChangeText={setPassword}
+                    secureTextEntry={!showPassword}
+                    onSubmitEditing={() => void handleSubmit()}
+                    returnKeyType="go"
+                    style={[styles.input, styles.passwordInput]}
+                  />
+                  <TouchableOpacity
+                    onPress={() => setShowPassword((s) => !s)}
+                    style={styles.eyeBtn}
+                  >
+                    {showPassword ? (
+                      <EyeOff width={20} height={20} color={theme.colors.textSecondary} />
+                    ) : (
+                      <Eye width={20} height={20} color={theme.colors.textSecondary} />
+                    )}
+                  </TouchableOpacity>
+                </View>
+              </View>
+
+              <TouchableOpacity onPress={() => setShowForgotPasswordModal(true)}>
+                <Text style={styles.forgotLink}>{t('forgotPassword')}</Text>
+              </TouchableOpacity>
+
+              {isDevLoginEnabled() && (
+                <TouchableOpacity
+                  onPress={handleFillTestLogin}
+                  style={styles.devFillBtn}
+                  disabled={loading}
+                >
+                  <Text style={styles.devFillText}>{DEV_TEST_LOGIN_BUTTON_LABEL}</Text>
+                </TouchableOpacity>
+              )}
+
+              <PartnerButton
+                label={t('login')}
+                onPress={handleSubmit}
+                loading={loading}
+                disabled={loading}
+                style={styles.submitBtn}
+              />
+
+              <SocialLoginButtons onSuccess={handleSocialSuccess} disabled={loading} />
+            </MotiView>
+          </ScrollView>
+        </KeyboardAvoidingView>
+      </SafeAreaView>
+
       {loading && (
         <View style={styles.loadingOverlay}>
-          <ActivityIndicator size='large' color='#FFFFFF' />
+          <ActivityIndicator size="large" color="#FFFFFF" />
         </View>
       )}
-      <ForgotPasswordModal show={showForgotPasswordModal} onClose={toggleForgotPasswordModal} />
+      <ForgotPasswordModal
+        show={showForgotPasswordModal}
+        onClose={() => setShowForgotPasswordModal(false)}
+      />
     </LinearGradient>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
+  flex: { flex: 1 },
+  scroll: {
+    flexGrow: 1,
     justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-  },
-  formContainer: {
+    padding: theme.spacing.lg,
+    maxWidth: 440,
     width: '100%',
-    maxWidth: 400,
-    padding: 20,
-    backgroundColor: 'white',
-    borderRadius: 10,
-    shadowOpacity: 0.25,
-    shadowRadius: 5,
-    shadowColor: '#000',
-    shadowOffset: { height: 0, width: 0 },
+    alignSelf: 'center',
   },
-  imageContainer: {
-    justifyContent: 'center',
+  backBtn: {
+    marginBottom: theme.spacing.sm,
+    alignSelf: 'flex-start',
+    padding: 8,
+  },
+  backText: {
+    color: '#fff',
+    fontSize: 24,
+    fontWeight: '600',
+  },
+  card: {
+    backgroundColor: theme.colors.surface,
+    borderRadius: theme.radius.xl,
+    padding: theme.spacing.lg,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.15,
+    shadowRadius: 24,
+    elevation: 10,
+  },
+  cardHeader: {
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: theme.spacing.md,
   },
   logo: {
-    width: 100,
-    height: 100,
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    marginBottom: theme.spacing.sm,
   },
   title: {
-    fontSize: 20,
-    fontWeight: 'bold',
+    fontSize: 24,
+    fontWeight: '800',
+    color: theme.colors.text,
     textAlign: 'center',
-    marginBottom: 20,
+  },
+  subtitle: {
+    fontSize: 14,
+    color: theme.colors.textSecondary,
+    textAlign: 'center',
+    marginTop: 6,
+    marginBottom: theme.spacing.md,
+    lineHeight: 20,
   },
   signupLink: {
-    fontSize: 16,
+    fontSize: 14,
     textAlign: 'center',
-    color: '#555',
-    marginBottom: 20,
+    color: theme.colors.textSecondary,
+    marginBottom: theme.spacing.lg,
   },
   signupText: {
-    color: '#0077cc',
-    textDecorationLine: 'underline',
+    color: theme.colors.primary,
+    fontWeight: '700',
   },
-  inputContainer: {
-    marginBottom: 10,
+  field: {
+    marginBottom: theme.spacing.md,
+  },
+  label: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: theme.colors.text,
+    marginBottom: 6,
   },
   input: {
     fontSize: 16,
-    padding: 12,
-    backgroundColor: '#f0f0f0',
-    borderColor: '#ccc',
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    backgroundColor: theme.colors.background,
+    borderColor: theme.colors.border,
     borderWidth: 1,
-    borderRadius: 8,
-    width: '100%',
+    borderRadius: theme.radius.md,
+    color: theme.colors.text,
   },
-  eyeIcon: {
+  passwordWrap: {
+    position: 'relative',
+  },
+  passwordInput: {
+    paddingRight: 48,
+  },
+  eyeBtn: {
     position: 'absolute',
-    right: 10,
-    top: 12,
-    padding: 10,
+    right: 12,
+    top: 14,
+    padding: 4,
   },
-  forgotPasswordLink: {
+  forgotLink: {
     textAlign: 'right',
-    color: '#0077cc',
-    textDecorationLine: 'underline',
-    marginBottom: 20,
+    color: theme.colors.primary,
+    fontWeight: '600',
+    fontSize: 13,
+    marginBottom: theme.spacing.lg,
   },
-  loginButton: {
-    backgroundColor: '#0077cc',
-    padding: 15,
-    borderRadius: 8,
+  devFillBtn: {
+    marginBottom: theme.spacing.md,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderRadius: theme.radius.md,
+    borderWidth: 1,
+    borderStyle: 'dashed',
+    borderColor: theme.colors.border,
+    backgroundColor: theme.colors.background,
     alignItems: 'center',
-    justifyContent: 'center',
-    height: 50,
   },
-  loginButtonText: {
-    color: 'white',
-    fontSize: 16,
-    fontWeight: 'bold',
+  devFillText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: theme.colors.textSecondary,
+  },
+  errorBanner: {
+    marginBottom: theme.spacing.md,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderRadius: theme.radius.md,
+    backgroundColor: '#FEE2E2',
+    borderWidth: 1,
+    borderColor: '#FECACA',
+  },
+  errorBannerText: {
+    color: '#B91C1C',
+    fontSize: 13,
+    fontWeight: '600',
+    textAlign: 'center',
+  },
+  submitBtn: {
+    marginBottom: theme.spacing.sm,
   },
   loadingOverlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    backgroundColor: 'rgba(0,0,0,0.45)',
     justifyContent: 'center',
     alignItems: 'center',
   },

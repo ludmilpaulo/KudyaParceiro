@@ -1,6 +1,17 @@
 import React, { useState } from 'react';
-import { Modal, View, Text, TextInput, TouchableOpacity, ActivityIndicator, Alert, StyleSheet } from 'react-native';
+import {
+  Modal,
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  ActivityIndicator,
+  Alert,
+  StyleSheet,
+} from 'react-native';
 import { baseAPI } from '../services/types';
+import { useTranslation } from '../hooks/useTranslation';
+import { theme } from '../configs/theme';
 
 interface ForgotPasswordModalProps {
   show: boolean;
@@ -8,11 +19,16 @@ interface ForgotPasswordModalProps {
 }
 
 const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({ show, onClose }) => {
+  const { t } = useTranslation();
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [emailSent, setEmailSent] = useState(false);
 
   const handleResetPassword = async () => {
+    if (!email.trim()) {
+      Alert.alert(t('error'), t('fillAllFields'));
+      return;
+    }
     setLoading(true);
     try {
       const response = await fetch(`${baseAPI}/conta/reset-password/`, {
@@ -23,13 +39,12 @@ const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({ show, onClose
       const data = await response.json();
       if (response.ok) {
         setEmailSent(true);
-        Alert.alert('Sucesso', 'Email enviado. Por favor, verifique seu email para redefinir sua senha.');
+        Alert.alert(t('success'), t('resetPasswordSuccess'));
       } else {
-        Alert.alert('Erro', data.message || 'Erro ao enviar o email de redefinição de senha.');
+        Alert.alert(t('error'), data.message || t('resetPasswordFailed'));
       }
-    } catch (error) {
-      console.error('Erro ao redefinir a senha:', error);
-      Alert.alert('Erro', 'Erro ao enviar o email de redefinição de senha.');
+    } catch {
+      Alert.alert(t('error'), t('resetPasswordFailed'));
     } finally {
       setLoading(false);
     }
@@ -38,45 +53,47 @@ const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({ show, onClose
   if (!show) return null;
 
   return (
-    <Modal transparent={true} visible={show} animationType="slide">
-      <View style={styles.centeredView}>
-        <View style={styles.modalView}>
+    <Modal transparent visible={show} animationType="fade">
+      <View style={styles.overlay}>
+        <View style={styles.modal}>
           {emailSent ? (
-            <View>
-              <Text style={styles.modalTextHeader}>Email Enviado</Text>
-              <Text style={styles.modalText}>Por favor, verifique seu email para redefinir sua senha.</Text>
-              <TouchableOpacity onPress={onClose} style={styles.buttonClose}>
-                <Text style={styles.textStyle}>Fechar</Text>
+            <>
+              <Text style={styles.title}>{t('resetPasswordEmailSent')}</Text>
+              <Text style={styles.body}>{t('emailSent')}</Text>
+              <TouchableOpacity onPress={onClose} style={styles.primaryBtn}>
+                <Text style={styles.primaryBtnText}>{t('close')}</Text>
               </TouchableOpacity>
-            </View>
+            </>
           ) : (
-            <View>
-              <Text style={styles.modalTextHeader}>Redefinir Senha</Text>
-              <Text style={styles.label}>Email</Text>
+            <>
+              <Text style={styles.title}>{t('resetPassword')}</Text>
+              <Text style={styles.label}>{t('email')}</Text>
               <TextInput
                 keyboardType="email-address"
+                autoCapitalize="none"
                 value={email}
                 onChangeText={setEmail}
                 style={styles.input}
-                placeholder="Digite seu email"
+                placeholder={t('enterEmail')}
+                placeholderTextColor={theme.colors.textMuted}
               />
-              <View style={styles.buttonContainer}>
-                <TouchableOpacity onPress={onClose} style={styles.buttonCancel}>
-                  <Text style={styles.textStyle}>Cancelar</Text>
+              <View style={styles.actions}>
+                <TouchableOpacity onPress={onClose} style={styles.secondaryBtn}>
+                  <Text style={styles.secondaryBtnText}>{t('cancel')}</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                   onPress={handleResetPassword}
-                  style={styles.buttonSubmit}
+                  style={styles.primaryBtn}
                   disabled={loading}
                 >
                   {loading ? (
-                    <ActivityIndicator size="small" color="#FFFFFF" />
+                    <ActivityIndicator size="small" color="#fff" />
                   ) : (
-                    <Text style={styles.textStyle}>Enviar</Text>
+                    <Text style={styles.primaryBtnText}>{t('send')}</Text>
                   )}
                 </TouchableOpacity>
               </View>
-            </View>
+            </>
           )}
         </View>
       </View>
@@ -85,74 +102,78 @@ const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({ show, onClose
 };
 
 const styles = StyleSheet.create({
-  centeredView: {
+  overlay: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.4)', // Enhanced overlay background for better visibility
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    padding: theme.spacing.lg,
   },
-  modalView: {
-    margin: 20,
-    backgroundColor: 'white',
-    borderRadius: 20,
-    padding: 35,
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-    elevation: 5,
+  modal: {
+    width: '100%',
+    maxWidth: 400,
+    backgroundColor: theme.colors.surface,
+    borderRadius: theme.radius.xl,
+    padding: theme.spacing.lg,
   },
-  modalTextHeader: {
-    marginBottom: 15,
-    textAlign: 'center',
+  title: {
     fontSize: 18,
-    fontWeight: 'bold',
-  },
-  modalText: {
-    marginBottom: 15,
+    fontWeight: '800',
+    color: theme.colors.text,
     textAlign: 'center',
+    marginBottom: theme.spacing.md,
+  },
+  body: {
+    fontSize: 14,
+    color: theme.colors.textSecondary,
+    textAlign: 'center',
+    marginBottom: theme.spacing.lg,
+    lineHeight: 20,
   },
   label: {
-    alignSelf: 'flex-start',
-    marginBottom: 5,
+    fontSize: 13,
+    fontWeight: '600',
+    color: theme.colors.text,
+    marginBottom: 6,
   },
   input: {
-    width: '100%',
-    padding: 10,
+    padding: 14,
     borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 5,
-    marginBottom: 10,
+    borderColor: theme.colors.border,
+    borderRadius: theme.radius.md,
+    marginBottom: theme.spacing.lg,
+    fontSize: 16,
+    backgroundColor: theme.colors.background,
   },
-  buttonContainer: {
+  actions: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    width: '100%',
+    gap: theme.spacing.sm,
   },
-  buttonClose: {
-    backgroundColor: '#2196F3',
-    borderRadius: 20,
-    padding: 10,
-    elevation: 2,
+  primaryBtn: {
+    flex: 1,
+    backgroundColor: theme.colors.primary,
+    borderRadius: theme.radius.md,
+    paddingVertical: 14,
+    alignItems: 'center',
   },
-  buttonCancel: {
-    backgroundColor: '#888',
-    borderRadius: 20,
-    padding: 10,
-    elevation: 2,
-    marginRight: 10,
+  primaryBtnText: {
+    color: '#fff',
+    fontWeight: '700',
+    fontSize: 15,
   },
-  buttonSubmit: {
-    backgroundColor: '#2196F3',
-    borderRadius: 20,
-    padding: 10,
-    elevation: 2,
+  secondaryBtn: {
+    flex: 1,
+    backgroundColor: theme.colors.background,
+    borderRadius: theme.radius.md,
+    paddingVertical: 14,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: theme.colors.border,
   },
-  textStyle: {
-    color: 'white',
-    fontWeight: 'bold',
-    textAlign: 'center',
+  secondaryBtnText: {
+    color: theme.colors.textSecondary,
+    fontWeight: '600',
+    fontSize: 15,
   },
 });
 

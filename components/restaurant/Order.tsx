@@ -5,7 +5,7 @@ import tailwind from 'twrnc';
 import { selectUser } from '../../redux/slices/authSlice';
 import { baseAPI, OrderTypes } from '../../services/types';
 import { fetchOrders, updateOrderStatus } from '../../services/apiService';
-import * as Notifications from 'expo-notifications';
+import { scheduleLocalNotification } from '../../utils/localNotifications';
 import * as Haptics from 'expo-haptics';
 
 const Orders: React.FC = () => {
@@ -67,13 +67,10 @@ const Orders: React.FC = () => {
         if (JSON.stringify(data) !== JSON.stringify(orders)) {
           setOrders(data);
           Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-          Notifications.scheduleNotificationAsync({
-            content: {
-              title: "Novo Pedido",
-              body: "Você tem novos pedidos.",
-              sound: true,
-            },
-            trigger: null,
+          void scheduleLocalNotification({
+            title: "Novo Pedido",
+            body: "Você tem novos pedidos.",
+            sound: true,
           });
         }
       } catch (error) {
@@ -134,7 +131,7 @@ const Orders: React.FC = () => {
                     <Text style={styles.downloadButtonText}>Baixar Comprovante de Pagamento</Text>
                   </TouchableOpacity>
                 )}
-                {order.status === 'Cozinhando' && (
+                {order.status_code === 1 && (
                   <TouchableOpacity
                     onPress={() => handleStatus(order.id)}
                     style={styles.actionButton}

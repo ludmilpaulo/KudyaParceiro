@@ -1,123 +1,214 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, ActivityIndicator, Alert, TouchableOpacity } from 'react-native';
-import * as Location from 'expo-location';
-import tailwind from 'tailwind-react-native-classnames';
+import React, { useEffect } from 'react';
+import {
+  View,
+  Text,
+  Image,
+  ScrollView,
+  StyleSheet,
+  Platform,
+  useWindowDimensions,
+} from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
-
-import type { AboutUsData, RestaurantJoin } from '../services/types';
-import { baseAPI } from '../services/types';
-
-import Banner from '../components/Banner';
-import { fetchAboutUsData } from '../services/information';
+import { MotiView } from 'moti';
 import { useTranslation } from '../hooks/useTranslation';
-
-const fallbackLocation = {
-  latitude: -25.747868,
-  longitude: 28.229271,
-};
+import LanguagePicker from '../components/LanguagePicker';
+import PartnerButton from '../components/ui/PartnerButton';
+import { FeatureCard } from '../components/ui/FeatureCard';
+import { theme } from '../configs/theme';
+import { analytics } from '../utils/mixpanel';
 
 const JoinScreen = () => {
   const navigation = useNavigation<any>();
   const { t } = useTranslation();
-  const [headerData, setHeaderData] = useState<AboutUsData | null>(null);
-  const [restaurants, setRestaurants] = useState<RestaurantJoin[]>([]);
-  const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number }>(fallbackLocation);
-  const [loading, setLoading] = useState(true);
+  const { width } = useWindowDimensions();
+  const isWide = width >= 768;
 
   useEffect(() => {
-    const fetchLocationAndData = async () => {
-      try {
-        const { status } = await Location.requestForegroundPermissionsAsync();
-    
-        if (status !== 'granted') {
-          Alert.alert('Location Permission Denied', 'Using default location.');
-          setUserLocation(fallbackLocation);
-        } else {
-          try {
-            const location = await Location.getCurrentPositionAsync({
-              accuracy: Location.Accuracy.High,
-            });
-            setUserLocation({
-              latitude: location.coords.latitude,
-              longitude: location.coords.longitude,
-            });
-          } catch (locErr) {
-            console.warn('Location error:', locErr);
-            Alert.alert('Location Error', 'Could not get your location. Using default.');
-            setUserLocation(fallbackLocation);
-          }
-        }
-    
-        const data = await fetchAboutUsData();
-        setHeaderData(data); // because it's already an object, not an array
-
-        console.log('Header data:', data);
-    
-        const response = await fetch(`${baseAPI}/customer/customer/restaurants/`);
-        const restaurantData = await response.json();
-        console.log('Restaurant data:', restaurantData);
-    
-        const approvedRestaurants = Array.isArray(restaurantData.restaurants)
-          ? restaurantData.restaurants.map((restaurant: any) => ({
-              ...restaurant,
-              location: parseLocation(restaurant.location),
-            }))
-          : [];
-    
-        setRestaurants(approvedRestaurants);
-      } catch (error) {
-        console.error('Error fetching data:', error);
-        Alert.alert('Error', 'Unable to fetch location or restaurant data.');
-      } finally {
-        setLoading(false);
-      }
-    };
-    
-
-    fetchLocationAndData();
+    analytics.trackScreenView('Partner Welcome Screen');
   }, []);
 
   return (
-    <View style={tailwind`flex-1 bg-gray-100`}>
-     {loading ? (
-  <View style={tailwind`flex-1 justify-center items-center`}>
-    <ActivityIndicator size="large" color="#4f46e5" />
-  </View>
-) : headerData && restaurants.length > 0 ? (
-  <Banner
-    title={headerData.title}
-    backgroundImage={headerData.backgroundImage}
-    backgroundApp={headerData.backgroundApp}
-    bottomImage={headerData.bottomImage}
-    aboutText={headerData.about}
-    restaurants={restaurants}
-    userLocation={userLocation}
-  />
-) : (
-  <View style={tailwind`flex-1 justify-center items-center px-6`}>
-    <Text style={tailwind`text-gray-600 text-lg mb-4 text-center`}>{t('noDataAvailable')}</Text>
-    <TouchableOpacity
-      style={tailwind`bg-blue-700 px-6 py-3 rounded-full`}
-      onPress={() => navigation.navigate('UserLogin')}
-    >
-      <Text style={tailwind`text-white text-lg font-semibold`}>{t('signIn')}</Text>
-    </TouchableOpacity>
-  </View>
-)}
+    <LinearGradient colors={[...theme.gradient.hero]} style={styles.flex}>
+      <SafeAreaView style={styles.flex}>
+        <ScrollView
+          contentContainerStyle={[styles.scroll, isWide && styles.scrollWide]}
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={styles.langRow}>
+            <LanguagePicker compact />
+          </View>
 
-    </View>
+          <MotiView
+            from={{ opacity: 0, translateY: 24 }}
+            animate={{ opacity: 1, translateY: 0 }}
+            transition={{ type: 'timing', duration: 600 }}
+            style={[styles.heroBlock, isWide && styles.heroBlockWide]}
+          >
+            <View style={styles.logoRing}>
+              <Image source={require('../assets/azul.png')} style={styles.logo} />
+            </View>
+            <Text style={styles.appName}>{t('partnerAppName')}</Text>
+            <Text style={styles.tagline}>{t('partnerTagline')}</Text>
+            <Text style={styles.heroTitle}>{t('partnerHeroTitle')}</Text>
+            <Text style={styles.heroSubtitle}>{t('partnerHeroSubtitle')}</Text>
+          </MotiView>
+
+          <MotiView
+            from={{ opacity: 0, translateY: 32 }}
+            animate={{ opacity: 1, translateY: 0 }}
+            transition={{ type: 'timing', duration: 700, delay: 150 }}
+            style={[styles.features, isWide && styles.featuresWide]}
+          >
+            <FeatureCard
+              icon="shopping-bag"
+              title={t('partnerFeatureOrdersTitle')}
+              description={t('partnerFeatureOrdersDesc')}
+            />
+            <FeatureCard
+              icon="trending-up"
+              title={t('partnerFeatureEarningsTitle')}
+              description={t('partnerFeatureEarningsDesc')}
+            />
+            <FeatureCard
+              icon="settings"
+              title={t('partnerFeatureManageTitle')}
+              description={t('partnerFeatureManageDesc')}
+            />
+          </MotiView>
+
+          <MotiView
+            from={{ opacity: 0, translateY: 20 }}
+            animate={{ opacity: 1, translateY: 0 }}
+            transition={{ type: 'timing', duration: 600, delay: 300 }}
+            style={[styles.actions, isWide && styles.actionsWide]}
+          >
+            <PartnerButton
+              label={t('signInToAccount')}
+              onPress={() => navigation.navigate('UserLogin')}
+            />
+            <View style={styles.actionGap} />
+            <PartnerButton
+              label={t('becomePartner')}
+              variant="secondary"
+              onPress={() => navigation.navigate('SignupScreen')}
+            />
+          </MotiView>
+
+          <Text style={styles.footer}>© {new Date().getFullYear()} Kudya</Text>
+        </ScrollView>
+      </SafeAreaView>
+    </LinearGradient>
   );
 };
 
-function parseLocation(locationString: string): { latitude: number; longitude: number } {
-  if (!locationString || !locationString.includes(',')) {
-    return fallbackLocation;
-  }
-  const [latitude, longitude] = locationString.split(',').map(Number);
-  return {
-    latitude: isNaN(latitude) ? fallbackLocation.latitude : latitude,
-    longitude: isNaN(longitude) ? fallbackLocation.longitude : longitude,
-  };
-}
+const styles = StyleSheet.create({
+  flex: { flex: 1 },
+  scroll: {
+    flexGrow: 1,
+    paddingHorizontal: theme.spacing.lg,
+    paddingBottom: theme.spacing.xl,
+    maxWidth: 520,
+    alignSelf: 'center',
+    width: '100%',
+  },
+  scrollWide: {
+    maxWidth: 960,
+    paddingHorizontal: theme.spacing.xl,
+  },
+  langRow: {
+    alignItems: 'flex-end',
+    marginTop: theme.spacing.sm,
+    marginBottom: theme.spacing.md,
+  },
+  heroBlock: {
+    alignItems: 'center',
+    marginBottom: theme.spacing.lg,
+  },
+  heroBlockWide: {
+    marginBottom: theme.spacing.xl,
+  },
+  logoRing: {
+    width: 108,
+    height: 108,
+    borderRadius: 54,
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: theme.spacing.md,
+    borderWidth: 2,
+    borderColor: 'rgba(255,255,255,0.3)',
+    ...Platform.select({
+      web: { boxShadow: '0 8px 32px rgba(0,0,0,0.2)' },
+      default: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.2,
+        shadowRadius: 12,
+        elevation: 8,
+      },
+    }),
+  },
+  logo: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+  },
+  appName: {
+    fontSize: 28,
+    fontWeight: '800',
+    color: '#fff',
+    letterSpacing: 0.5,
+    marginBottom: 4,
+  },
+  tagline: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: theme.colors.accent,
+    marginBottom: theme.spacing.md,
+    textTransform: 'uppercase',
+    letterSpacing: 1.2,
+  },
+  heroTitle: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: '#fff',
+    textAlign: 'center',
+    marginBottom: theme.spacing.sm,
+  },
+  heroSubtitle: {
+    fontSize: 15,
+    lineHeight: 22,
+    color: 'rgba(255,255,255,0.88)',
+    textAlign: 'center',
+    paddingHorizontal: theme.spacing.sm,
+  },
+  features: {
+    marginBottom: theme.spacing.lg,
+  },
+  featuresWide: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: theme.spacing.sm,
+  },
+  actions: {
+    marginTop: theme.spacing.sm,
+  },
+  actionsWide: {
+    maxWidth: 400,
+    alignSelf: 'center',
+    width: '100%',
+  },
+  actionGap: {
+    height: theme.spacing.sm,
+  },
+  footer: {
+    textAlign: 'center',
+    color: 'rgba(255,255,255,0.5)',
+    fontSize: 12,
+    marginTop: theme.spacing.lg,
+  },
+});
 
 export default JoinScreen;

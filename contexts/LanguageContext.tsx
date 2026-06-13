@@ -8,6 +8,8 @@ import {
   setLanguage as applyLanguage,
   supportedLocales,
 } from '../configs/i18n';
+import { store } from '../redux/store';
+import { languageApi } from '../redux/slices/languageApi';
 
 type LanguageContextValue = {
   languageCode: SupportedLocale;
@@ -27,10 +29,23 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
     (async () => {
       try {
         const stored = await AsyncStorage.getItem(LANGUAGE_STORAGE_KEY);
-        const next =
+        const systemLang = detectDeviceLanguage();
+        let next: SupportedLocale =
           stored && supportedLocales.includes(stored as SupportedLocale)
             ? (stored as SupportedLocale)
-            : detectDeviceLanguage();
+            : systemLang;
+
+        try {
+          const pref = await store
+            .dispatch(languageApi.endpoints.getLanguagePreference.initiate())
+            .unwrap();
+          if (pref.preferredLanguage && supportedLocales.includes(pref.preferredLanguage as SupportedLocale)) {
+            next = pref.preferredLanguage as SupportedLocale;
+          }
+        } catch {
+          // Use local/device language when backend is unavailable.
+        }
+
         if (!cancelled) {
           applyLanguage(next);
           setLanguageCode(next);
@@ -48,6 +63,16 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
     applyLanguage(code);
     setLanguageCode(code);
     await AsyncStorage.setItem(LANGUAGE_STORAGE_KEY, code);
+    try {
+      await store.dispatch(
+        languageApi.endpoints.updateLanguagePreference.initiate({
+          preferredLanguage: code,
+          systemLanguage: detectDeviceLanguage(),
+        }),
+      );
+    } catch {
+      // Preference is still persisted locally.
+    }
   }, []);
 
   const value = useMemo(

@@ -66,10 +66,7 @@ export default function SocialLoginButtons({ onSuccess, disabled }: Props) {
 
   const handlePress = async (provider: SocialProvider) => {
     if (!isSocialLoginConfigured(provider)) {
-      Alert.alert(
-        'Erro',
-        `Login ${provider} ainda não configurado. Adicione as chaves OAuth no .env (veja SOCIAL_LOGIN_SETUP.md).`,
-      );
+      Alert.alert(t('error'), t('socialLoginNotConfigured'));
       return;
     }
     try {
@@ -104,7 +101,7 @@ export default function SocialLoginButtons({ onSuccess, disabled }: Props) {
       <Text style={tw`text-center text-gray-500 mb-3`}>{t('orContinueWith')}</Text>
       {!anyConfigured ? (
         <Text style={tw`text-center text-xs text-gray-400 mb-2`}>
-          Login social requer chaves OAuth na configuração do app.
+          {t('socialLoginRequiresOAuth')}
         </Text>
       ) : null}
       {PROVIDERS.map((p) => {

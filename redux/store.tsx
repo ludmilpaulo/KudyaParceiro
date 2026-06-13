@@ -1,6 +1,10 @@
 import { combineReducers, configureStore } from "@reduxjs/toolkit";
 import { TypedUseSelectorHook, useDispatch, useSelector } from "react-redux";
 import authReducer from "./slices/authSlice";
+import { doctorApi } from "./slices/doctorApi";
+import { notificationApi } from "./slices/notificationApi";
+import { partnerApi } from "./slices/partnerApi";
+import { languageApi, pushTokenApi } from "./slices/languageApi";
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { persistReducer, persistStore } from "redux-persist";
@@ -11,8 +15,12 @@ const rootPersistConfig = {
 };
 
 const rootReducer = combineReducers({
- 
   auth: authReducer,
+  [doctorApi.reducerPath]: doctorApi.reducer,
+  [notificationApi.reducerPath]: notificationApi.reducer,
+  [partnerApi.reducerPath]: partnerApi.reducer,
+  [languageApi.reducerPath]: languageApi.reducer,
+  [pushTokenApi.reducerPath]: pushTokenApi.reducer,
 });
 
 const persistedReducer = persistReducer(rootPersistConfig, rootReducer);
@@ -22,7 +30,12 @@ export const store = configureStore({
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
       serializableCheck: false,
-    }),
+    })
+      .concat(doctorApi.middleware)
+      .concat(notificationApi.middleware)
+      .concat(partnerApi.middleware)
+      .concat(languageApi.middleware)
+      .concat(pushTokenApi.middleware),
 });
 
 export const persistor = persistStore(store);

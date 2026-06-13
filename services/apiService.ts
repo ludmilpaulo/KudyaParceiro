@@ -124,7 +124,7 @@ export const fetchOrders = async (userId: number): Promise<OrderTypes[]> => {
 
   export const updateOrderStatus = async (userId: number, orderId: number): Promise<void> => {
     console.log("order status");
-    const response = await fetch(`${baseAPI}/restaurant/restaurant/status/`, {
+    const response = await fetch(`${baseAPI}/store/store/status/`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",

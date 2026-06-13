@@ -1,6 +1,6 @@
 import React, { ReactNode } from "react";
-import { SafeAreaView, StyleSheet, View } from "react-native";
-import Constants from "expo-constants";
+import { StyleSheet, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function Screen({
   children,
@@ -10,7 +10,7 @@ export default function Screen({
   style?: any;
 }) {
   return (
-    <SafeAreaView style={[styles.container, style]}>
+    <SafeAreaView style={[styles.container, style]} edges={["top", "left", "right"]}>
       <View style={[styles.view, style]}>{children}</View>
     </SafeAreaView>
   );
@@ -18,7 +18,6 @@ export default function Screen({
 
 const styles = StyleSheet.create({
   container: {
-    paddingTop: Constants.statusBarHeight,
     flex: 1,
   },
   view: {

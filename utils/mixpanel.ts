@@ -1,11 +1,18 @@
 // Mixpanel Analytics Configuration for React Native
+import Constants from 'expo-constants';
+import { Platform } from 'react-native';
 import { Mixpanel } from 'mixpanel-react-native';
 
 // Initialize Mixpanel with your token
 const MIXPANEL_TOKEN = 'a8cf933c3054afed7f397f71249ba506';
 
-// Create Mixpanel instance
-const mixpanel = new Mixpanel(MIXPANEL_TOKEN, true); // true enables automatic events
+const useNativeMixpanel =
+  Constants.appOwnership !== 'expo' && Platform.OS !== 'web';
+
+// Create Mixpanel instance (JS mode in Expo Go / web avoids native-module warning)
+const mixpanel = useNativeMixpanel
+  ? new Mixpanel(MIXPANEL_TOKEN, true, true)
+  : new Mixpanel(MIXPANEL_TOKEN, true, false);
 
 // Initialize Mixpanel
 mixpanel.init();
