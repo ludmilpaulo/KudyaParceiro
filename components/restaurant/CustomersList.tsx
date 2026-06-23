@@ -1,10 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, Image, StyleSheet, ActivityIndicator } from 'react-native';
-import axios from 'axios';
-import { useSelector } from 'react-redux';
 import tailwind from 'twrnc';
-import { selectUser } from '../../redux/slices/authSlice';
-import { baseAPI } from '../../services/types';
+import { fetchPartnerReportCustomers } from '../../features/partner/api/partnerReportsApi';
 
 interface Customer {
   id: number;
@@ -17,7 +14,6 @@ interface Customer {
 const CustomersList: React.FC = () => {
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(true);
-  const user = useSelector(selectUser);
 
   useEffect(() => {
     fetchData();
@@ -25,11 +21,9 @@ const CustomersList: React.FC = () => {
 
   const fetchData = async () => {
     try {
-      const response = await axios.get(
-        `${baseAPI}/report/restaurant/customers/${user.user_id}/`,
-      );
-      console.log("customer",response.data)
-      setCustomers(response.data);
+      const response = await fetchPartnerReportCustomers();
+      console.log('customer', response);
+      setCustomers(response);
     } catch (error) {
       console.error('Error fetching customers:', error);
     } finally {

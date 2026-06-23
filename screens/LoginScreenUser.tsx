@@ -34,7 +34,9 @@ import PartnerButton from '../components/ui/PartnerButton';
 import { theme } from '../configs/theme';
 import {
   DEV_TEST_DOCTOR_LOGIN,
-  DEV_TEST_LOGIN_BUTTON_LABEL,
+  DEV_TEST_STORE_LOGIN,
+  DEV_TEST_DOCTOR_LOGIN_BUTTON_LABEL,
+  DEV_TEST_STORE_LOGIN_BUTTON_LABEL,
   isDevLoginEnabled,
 } from '../configs/devTestLogin';
 
@@ -103,9 +105,14 @@ const LoginScreenUser = () => {
     }
   };
 
-  const handleFillTestLogin = () => {
+  const handleFillTestDoctorLogin = () => {
     setUsername(DEV_TEST_DOCTOR_LOGIN.username);
     setPassword(DEV_TEST_DOCTOR_LOGIN.password);
+  };
+
+  const handleFillTestStoreLogin = () => {
+    setUsername(DEV_TEST_STORE_LOGIN.username);
+    setPassword(DEV_TEST_STORE_LOGIN.password);
   };
 
   const handleSocialSuccess = (result: SocialAuthResult) => {
@@ -206,13 +213,22 @@ const LoginScreenUser = () => {
               </TouchableOpacity>
 
               {isDevLoginEnabled() && (
-                <TouchableOpacity
-                  onPress={handleFillTestLogin}
-                  style={styles.devFillBtn}
-                  disabled={loading}
-                >
-                  <Text style={styles.devFillText}>{DEV_TEST_LOGIN_BUTTON_LABEL}</Text>
-                </TouchableOpacity>
+                <View style={styles.devFillRow}>
+                  <TouchableOpacity
+                    onPress={handleFillTestDoctorLogin}
+                    style={[styles.devFillBtn, styles.devFillBtnHalf]}
+                    disabled={loading}
+                  >
+                    <Text style={styles.devFillText}>{DEV_TEST_DOCTOR_LOGIN_BUTTON_LABEL}</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    onPress={handleFillTestStoreLogin}
+                    style={[styles.devFillBtn, styles.devFillBtnHalf]}
+                    disabled={loading}
+                  >
+                    <Text style={styles.devFillText}>{DEV_TEST_STORE_LOGIN_BUTTON_LABEL}</Text>
+                  </TouchableOpacity>
+                </View>
               )}
 
               <PartnerButton
@@ -344,6 +360,11 @@ const styles = StyleSheet.create({
     fontSize: 13,
     marginBottom: theme.spacing.lg,
   },
+  devFillRow: {
+    flexDirection: 'row',
+    gap: theme.spacing.sm,
+    marginBottom: theme.spacing.md,
+  },
   devFillBtn: {
     marginBottom: theme.spacing.md,
     paddingVertical: 10,
@@ -354,6 +375,10 @@ const styles = StyleSheet.create({
     borderColor: theme.colors.border,
     backgroundColor: theme.colors.background,
     alignItems: 'center',
+  },
+  devFillBtnHalf: {
+    flex: 1,
+    marginBottom: 0,
   },
   devFillText: {
     fontSize: 13,

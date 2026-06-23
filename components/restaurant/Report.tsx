@@ -5,7 +5,7 @@ import { BarChart, LineChart, PieChart } from 'react-native-chart-kit';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import tailwind from 'twrnc';
 import { selectUser } from '../../redux/slices/authSlice';
-import { baseAPI } from '../../services/types';
+import { fetchPartnerReport } from '../../features/partner/api/partnerReportsApi';
 
 interface ReportData {
   revenue: number[];
@@ -49,22 +49,14 @@ const Report: React.FC = () => {
       try {
         const naiveStartDate = toNaiveISOString(startDate);
         const naiveEndDate = toNaiveISOString(endDate);
-        const url = `${baseAPI}/report/restaurant/${user.user_id}/?timeframe=${timeframe}&start_date=${naiveStartDate}&end_date=${naiveEndDate}`;
-        console.log('Fetching data from:', url);
-
-        const response = await fetch(url);
-        console.log('Response status:', response.status);
-
-        if (!response.ok) {
-          const errorText = await response.text();
-          console.log('Response error text:', errorText);
-          throw new Error('Falha ao buscar dados');
-        }
-
-        const responseData = await response.json();
+        const responseData = await fetchPartnerReport({
+          timeframe,
+          start_date: naiveStartDate,
+          end_date: naiveEndDate,
+        });
         console.log('Response data:', responseData);
 
-        if (responseData.message) {
+        if ((responseData as { message?: string }).message) {
           // Handle the case where no sales data is available
           setData({
             revenue: [],
@@ -77,7 +69,11 @@ const Report: React.FC = () => {
             total_restaurant_amount: 0,
           });
         } else {
-          setData(responseData);
+          setData({
+            ...responseData,
+            meals: responseData.products ?? { labels: [], data: [] },
+            total_restaurant_amount: responseData.total_store_amount ?? 0,
+          });
         }
       } catch (error:any) {
         console.error('Error fetching data:', error.message);

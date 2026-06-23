@@ -17,7 +17,7 @@ function mapPartnerMe(raw: RawRecord): PartnerMeResponse {
 
 export const partnerApi = createApi({
   reducerPath: "partnerApi",
-  baseQuery: createApiBaseQuery("/api/partner"),
+  baseQuery: createApiBaseQuery("/api/v1/partner"),
   tagTypes: ["PartnerMe"],
   endpoints: (builder) => ({
     getPartnerMe: builder.query<PartnerMeResponse, void>({

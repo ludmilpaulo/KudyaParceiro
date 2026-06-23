@@ -16,6 +16,7 @@ import {
   registerForPushNotificationsAsync,
   scheduleLocalNotification,
 } from "../utils/localNotifications";
+import FulfillmentPanel from "../features/fulfillment/components/FulfillmentPanel";
 
 const PUSH_PROJECT_ID = 'f848ca4d-cf74-4e6b-b42d-107d533158b8';
 
@@ -208,10 +209,12 @@ const EntregadorDashboard = () => {
         <Switch value={isOnline} onValueChange={handleStatusChange} />
       </View>
       <ScrollView contentContainerStyle={styles.scrollViewContent}>
+        <FulfillmentPanel enabled={isOnline} />
         {loading ? (
           <ActivityIndicator size="large" color="#0000ff" />
         ) : (
           <View style={styles.ordersContainer}>
+            <Text style={styles.sectionHeading}>Food orders (legacy)</Text>
             {userOrder.length > 0 ? (
               <OrdersItem orderReady={userOrder} />
             ) : (
@@ -245,6 +248,13 @@ const styles = StyleSheet.create({
   },
   ordersContainer: {
     marginTop: 16,
+  },
+  sectionHeading: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#475569',
+    marginBottom: 8,
+    textTransform: 'uppercase',
   },
   noOrdersText: {
     textAlign: "center",

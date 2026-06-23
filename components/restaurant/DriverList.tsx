@@ -1,10 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, Image, StyleSheet, ActivityIndicator } from 'react-native';
-import axios from 'axios';
-import { useSelector } from 'react-redux';
 import tailwind from 'twrnc';
-import { selectUser } from '../../redux/slices/authSlice';
-import { baseAPI } from '../../services/types';
+import { fetchPartnerReportDrivers } from '../../features/partner/api/partnerReportsApi';
 
 interface Driver {
   id: number;
@@ -17,7 +14,6 @@ interface Driver {
 const DriverList: React.FC = () => {
   const [drivers, setDrivers] = useState<Driver[]>([]);
   const [loading, setLoading] = useState(true);
-  const user = useSelector(selectUser);
 
   useEffect(() => {
     fetchData();
@@ -25,10 +21,8 @@ const DriverList: React.FC = () => {
 
   const fetchData = async () => {
     try {
-      const response = await axios.get(
-        `${baseAPI}/report/restaurant/drivers/${user.user_id}/`,
-      );
-      setDrivers(response.data);
+      const response = await fetchPartnerReportDrivers();
+      setDrivers(response);
     } catch (error) {
       console.error('Error fetching drivers:', error);
     } finally {

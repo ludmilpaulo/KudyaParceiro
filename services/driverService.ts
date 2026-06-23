@@ -183,36 +183,80 @@ export const fetchVerifiedOrder = async (accessToken: string) => {
   }
 };
 
-export const toggleOnline = async (driverId: number) => {
-  const res = await fetch(`${baseAPI}/drivers/api/drivers/${driverId}/toggle_online/`, { method: 'POST' });
-  return res.json();
-};
-
-export const toggleAvailable = async (driverId: number) => {
-  const res = await fetch(`${baseAPI}/drivers/api/drivers/${driverId}/toggle_available/`, { method: 'POST' });
-  return res.json();
-};
-
 export const fetchAvailableDeliveries = async () => {
-  const res = await fetch(`${baseAPI}/drivers/api/deliveries/available/`);
+  const { getBaseApiUrl } = await import('../utils/apiClient');
+  const token = await readAuthTokenForFulfillment();
+  const res = await fetch(`${getBaseApiUrl()}/api/v1/fulfillment/deliveries/available/`, {
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+  });
   return res.json();
 };
 
 export const fetchActiveDeliveries = async () => {
-  const res = await fetch(`${baseAPI}/drivers/api/deliveries/active/`);
+  const { getBaseApiUrl } = await import('../utils/apiClient');
+  const token = await readAuthTokenForFulfillment();
+  const res = await fetch(`${getBaseApiUrl()}/api/v1/fulfillment/deliveries/active/`, {
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+  });
   return res.json();
 };
 
+async function readAuthTokenForFulfillment(): Promise<string | undefined> {
+  try {
+    const AsyncStorage = (await import('@react-native-async-storage/async-storage')).default;
+    const raw = await AsyncStorage.getItem('persist:root');
+    if (!raw) return undefined;
+    const parsed = JSON.parse(raw) as { auth?: string };
+    const auth = parsed.auth ? JSON.parse(parsed.auth) as { user?: { token?: string } } : undefined;
+    return auth?.user?.token;
+  } catch {
+    return undefined;
+  }
+}
+
 export const acceptDelivery = async (deliveryId: number) => {
-  const res = await fetch(`${baseAPI}/drivers/api/deliveries/${deliveryId}/accept/`, { method: 'POST' });
+  const { getBaseApiUrl } = await import('../utils/apiClient');
+  const token = await readAuthTokenForFulfillment();
+  const res = await fetch(`${getBaseApiUrl()}/api/v1/fulfillment/deliveries/${deliveryId}/accept/`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+  });
   return res.json();
 };
 
 export const rejectDeliveryNew = async (deliveryId: number, reason = '') => {
-  const res = await fetch(`${baseAPI}/drivers/api/deliveries/${deliveryId}/reject/`, {
+  const { getBaseApiUrl } = await import('../utils/apiClient');
+  const token = await readAuthTokenForFulfillment();
+  const res = await fetch(`${getBaseApiUrl()}/api/v1/fulfillment/deliveries/${deliveryId}/reject/`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ reason })
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    body: JSON.stringify({ reason }),
+  });
+  return res.json();
+};
+
+export const toggleOnline = async (driverId: number) => {
+  const { getBaseApiUrl } = await import('../utils/apiClient');
+  const token = await readAuthTokenForFulfillment();
+  const res = await fetch(`${getBaseApiUrl()}/api/v1/fulfillment/drivers/${driverId}/toggle_online/`, {
+    method: 'POST',
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+  });
+  return res.json();
+};
+
+export const toggleAvailable = async (driverId: number) => {
+  const { getBaseApiUrl } = await import('../utils/apiClient');
+  const token = await readAuthTokenForFulfillment();
+  const res = await fetch(`${getBaseApiUrl()}/api/v1/fulfillment/drivers/${driverId}/toggle_available/`, {
+    method: 'POST',
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
   });
   return res.json();
 };

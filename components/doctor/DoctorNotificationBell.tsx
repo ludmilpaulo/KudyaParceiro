@@ -16,14 +16,16 @@ type Props = {
 export default function DoctorNotificationBell({ onNewBooking }: Props) {
   const { dt } = useDoctorTranslation();
   const [open, setOpen] = useState(false);
-  const seenBookingIds = useRef<Set<number>>(new Set());
+  const seenBookingIds = useRef<Set<string>>(new Set());
 
-  const { data: notifications = [], refetch } = useGetNotificationsQuery(undefined, {
-    pollingInterval: 45000,
-  });
-  const { data: unreadData } = useGetUnreadNotificationCountQuery(undefined, {
-    pollingInterval: 45000,
-  });
+  const { data: notifications = [], refetch } = useGetNotificationsQuery(
+    { module: "doctor" },
+    { pollingInterval: 45000 },
+  );
+  const { data: unreadData } = useGetUnreadNotificationCountQuery(
+    { module: "doctor" },
+    { pollingInterval: 45000 },
+  );
   const [markRead] = useMarkNotificationReadMutation();
   const [markAllRead] = useMarkAllNotificationsReadMutation();
 

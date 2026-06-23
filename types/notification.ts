@@ -1,23 +1,22 @@
-export type NotificationType =
-  | "doctor_approved"
-  | "doctor_rejected"
-  | "new_booking"
-  | "booking_cancelled"
-  | "appointment_confirmed"
-  | "appointment_completed"
-  | "appointment_updated"
-  | "verification_request";
+export type NotificationSource = 'platform' | 'healthcare' | 'unified';
 
-export interface AppNotification {
-  id: number;
-  notificationType: NotificationType;
+export type AppNotification = {
+  id: string;
+  source: NotificationSource;
+  module: string;
+  notificationType: string;
   title: string;
   message: string;
   actionUrl: string;
   isRead: boolean;
   createdAt: string;
-}
+};
 
-export interface UnreadNotificationCountResponse {
+export type UnreadNotificationCountResponse = {
   unreadCount: number;
-}
+};
+
+export type NotificationListParams = {
+  module?: string;
+  limit?: number;
+};

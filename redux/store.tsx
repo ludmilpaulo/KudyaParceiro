@@ -5,6 +5,7 @@ import { doctorApi } from "./slices/doctorApi";
 import { notificationApi } from "./slices/notificationApi";
 import { partnerApi } from "./slices/partnerApi";
 import { languageApi, pushTokenApi } from "./slices/languageApi";
+import { fulfillmentApi } from "./api/fulfillmentApi";
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { persistReducer, persistStore } from "redux-persist";
@@ -21,6 +22,7 @@ const rootReducer = combineReducers({
   [partnerApi.reducerPath]: partnerApi.reducer,
   [languageApi.reducerPath]: languageApi.reducer,
   [pushTokenApi.reducerPath]: pushTokenApi.reducer,
+  [fulfillmentApi.reducerPath]: fulfillmentApi.reducer,
 });
 
 const persistedReducer = persistReducer(rootPersistConfig, rootReducer);
@@ -35,7 +37,8 @@ export const store = configureStore({
       .concat(notificationApi.middleware)
       .concat(partnerApi.middleware)
       .concat(languageApi.middleware)
-      .concat(pushTokenApi.middleware),
+      .concat(pushTokenApi.middleware)
+      .concat(fulfillmentApi.middleware),
 });
 
 export const persistor = persistStore(store);
