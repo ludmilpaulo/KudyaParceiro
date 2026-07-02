@@ -26,7 +26,7 @@ const OpeningHour: React.FC<OpeningHourProps> = ({ restaurantId, openingHours, s
   });
  
 
-  const handleNewOpeningHourChange = (name: string, value: any) => {
+  const handleNewOpeningHourChange = (name: string, value: string | boolean) => {
     setNewOpeningHour((prev) => ({
       ...prev,
       [name]: value,

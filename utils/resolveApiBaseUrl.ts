@@ -45,6 +45,11 @@ function isLocalhostUrl(url: string): boolean {
   return /localhost|127\.0\.0\.1/.test(url);
 }
 
+/** Android emulator alias for the host machine — not reachable from desktop browsers. */
+function isAndroidEmulatorHost(url: string): boolean {
+  return /10\.0\.2\.2/.test(url);
+}
+
 function normalizePort(url: string): string {
   if (isLocalhostUrl(url) && url.includes(':8000')) {
     return url.replace(':8000', `:${DEV_API_PORT}`);
@@ -70,16 +75,20 @@ export function resolveApiBaseUrl(): string {
     ''
   ).trim();
 
-  if (configured && !isLocalhostUrl(configured)) {
-    return normalizePort(configured);
+  // Web (Cursor IDE browser) cannot use 10.0.2.2 — that host only exists inside the emulator.
+  if (Platform.OS === 'web') {
+    if (!configured || isLocalhostUrl(configured) || isAndroidEmulatorHost(configured)) {
+      return `http://127.0.0.1:${DEV_API_PORT}`;
+    }
+    return normalizePort(configured).replace(/\/\/localhost\b/i, '//127.0.0.1');
   }
 
-  if (Platform.OS === 'web') {
-    const base = configured
-      ? normalizePort(configured)
-      : `http://127.0.0.1:${DEV_API_PORT}`;
-    // Avoid IPv6 localhost (::1) when Django binds 127.0.0.1 only.
-    return base.replace(/\/\/localhost\b/i, '//127.0.0.1');
+  if (configured && !isLocalhostUrl(configured)) {
+    if (isAndroidEmulatorHost(configured)) {
+      const emulator = androidEmulatorHost();
+      return emulator ?? `http://127.0.0.1:${DEV_API_PORT}`;
+    }
+    return normalizePort(configured);
   }
 
   const devHost = getExpoDevHost();
@@ -94,7 +103,10 @@ export function resolveApiBaseUrl(): string {
 
   if (configured && isLocalhostUrl(configured)) {
     // Never use localhost on a real phone — it points at the device itself.
-    if (__DEV__) {
+    if (Constants.isDevice && devHost) {
+      return `http://${devHost}:${DEV_API_PORT}`;
+    }
+    if (__DEV__ && !Constants.isDevice) {
       return `http://127.0.0.1:${DEV_API_PORT}`;
     }
   }
@@ -103,7 +115,12 @@ export function resolveApiBaseUrl(): string {
     return PRODUCTION_API;
   }
 
-  return configured ? normalizePort(configured) : PRODUCTION_API;
+  const resolved = configured ? normalizePort(configured) : PRODUCTION_API;
+  if (!__DEV__ && (isLocalhostUrl(resolved) || isAndroidEmulatorHost(resolved))) {
+    return PRODUCTION_API;
+  }
+
+  return resolved;
 }
 
 export function getApiConnectionHint(): string {

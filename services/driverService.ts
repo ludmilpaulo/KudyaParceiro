@@ -37,29 +37,16 @@ export const getDriverOrders = async (_dispatch?: unknown): Promise<UserOrder[]>
   }
 };
 
-export const updateDriverLocation = async (userId: string, access_token:string, latitude: number, longitude: number) => {
-  try {
-    const response = await fetch(`${baseAPI}/driver/location/update/`, {
-      method: 'POST',
-      headers: {
-        Accept: 'application/json',
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ user_id: userId, access_token:access_token, location:{ latitude, longitude} }),
-    });
+import { updateDriverRideLocation } from './ridesService';
 
-    if (!response.ok) {
-      return null;
-    }
-
-    try {
-      return await response.json();
-    } catch {
-      return null;
-    }
-  } catch {
-    return null;
-  }
+export const updateDriverLocation = async (
+  _userId: string,
+  access_token: string,
+  latitude: number,
+  longitude: number,
+) => {
+  const ok = await updateDriverRideLocation(access_token, latitude, longitude);
+  return ok ? { status: 'location updated', latitude, longitude } : null;
 };
 
 export const updateDriverProfile = async (formData: FormData) => {

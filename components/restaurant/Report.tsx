@@ -75,7 +75,7 @@ const Report: React.FC = () => {
             total_restaurant_amount: responseData.total_store_amount ?? 0,
           });
         }
-      } catch (error:any) {
+      } catch (error: unknown) {
         console.error('Error fetching data:', error.message);
       } finally {
         setLoading(false);

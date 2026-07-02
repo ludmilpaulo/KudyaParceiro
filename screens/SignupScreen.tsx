@@ -13,7 +13,7 @@ import {
   Platform,
   type TextInput as TextInputType,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useAppNavigation } from '../navigation/hooks';
 import { useDispatch } from 'react-redux';
 import { Eye, EyeOff } from 'react-native-feather';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -50,7 +50,7 @@ const DRIVER_MODE_LABELS: Record<DriverServiceMode, string> = {
 const isWeb = Platform.OS === 'web';
 
 const SignupScreen: React.FC = () => {
-  const navigation = useNavigation<any>();
+  const navigation = useAppNavigation();
   const dispatch = useDispatch();
   const { t, languageCode } = useTranslation();
   const { languageCode: lang } = useLanguage();

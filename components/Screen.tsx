@@ -1,16 +1,22 @@
 import React, { ReactNode } from "react";
-import { StyleSheet, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import {
+  SafeAreaView,
+  StyleSheet,
+  View,
+  type StyleProp,
+  type ViewStyle,
+} from "react-native";
+import Constants from "expo-constants";
 
 export default function Screen({
   children,
   style,
 }: {
-  children: ReactNode;
-  style?: any;
+  children?: ReactNode;
+  style?: StyleProp<ViewStyle>;
 }) {
   return (
-    <SafeAreaView style={[styles.container, style]} edges={["top", "left", "right"]}>
+    <SafeAreaView style={[styles.container, style]}>
       <View style={[styles.view, style]}>{children}</View>
     </SafeAreaView>
   );
@@ -18,9 +24,8 @@ export default function Screen({
 
 const styles = StyleSheet.create({
   container: {
+    paddingTop: Constants.statusBarHeight,
     flex: 1,
   },
-  view: {
-    // flex: 1
-  },
+  view: {},
 });

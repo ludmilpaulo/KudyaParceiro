@@ -9,6 +9,7 @@ import { selectUser } from '../../redux/slices/authSlice';
 import { fetchCategorias, fetchProducts, addProduct, updateProduct, deleteProduct } from '../../services/apiService';
 import { Product, Categoria } from '../../services/types';
 import * as ImagePicker from 'expo-image-picker';
+import { appendFormDataFile } from '../../utils/formDataFile';
 
 const Products: React.FC = () => {
   const user = useSelector(selectUser);
@@ -70,11 +71,11 @@ const Products: React.FC = () => {
     formData.append('name', data.name);
     formData.append('short_description', data.short_description);
     if (image) {
-      formData.append('image', {
+      appendFormDataFile(formData, 'image', {
         uri: image,
         name: 'product_image.jpg',
         type: 'image/jpeg',
-      } as any);
+      });
     }
     formData.append('price', String(data.price));
     formData.append('category', selectedCategory);
@@ -104,11 +105,11 @@ const Products: React.FC = () => {
     formData.append('name', data.name);
     formData.append('short_description', data.short_description);
     if (image) {
-      formData.append('image', {
+      appendFormDataFile(formData, 'image', {
         uri: image,
         name: 'product_image.jpg',
         type: 'image/jpeg',
-      } as any);
+      });
     }
     formData.append('price', String(data.price));
     formData.append('category', selectedCategory);

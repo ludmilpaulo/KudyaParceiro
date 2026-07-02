@@ -33,8 +33,12 @@ import LanguagePicker from '../components/LanguagePicker';
 import PartnerButton from '../components/ui/PartnerButton';
 import { theme } from '../configs/theme';
 import {
+  DEV_TEST_DRIVER_LOGIN,
+  DEV_TEST_DRIVER_ALT_LOGIN,
   DEV_TEST_DOCTOR_LOGIN,
   DEV_TEST_STORE_LOGIN,
+  DEV_TEST_DRIVER_LOGIN_BUTTON_LABEL,
+  DEV_TEST_DRIVER_ALT_LOGIN_BUTTON_LABEL,
   DEV_TEST_DOCTOR_LOGIN_BUTTON_LABEL,
   DEV_TEST_STORE_LOGIN_BUTTON_LABEL,
   isDevLoginEnabled,
@@ -103,6 +107,16 @@ const LoginScreenUser = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleFillTestDriverLogin = () => {
+    setUsername(DEV_TEST_DRIVER_LOGIN.username);
+    setPassword(DEV_TEST_DRIVER_LOGIN.password);
+  };
+
+  const handleFillTestDriverAltLogin = () => {
+    setUsername(DEV_TEST_DRIVER_ALT_LOGIN.username);
+    setPassword(DEV_TEST_DRIVER_ALT_LOGIN.password);
   };
 
   const handleFillTestDoctorLogin = () => {
@@ -214,6 +228,20 @@ const LoginScreenUser = () => {
 
               {isDevLoginEnabled() && (
                 <View style={styles.devFillRow}>
+                  <TouchableOpacity
+                    onPress={handleFillTestDriverLogin}
+                    style={styles.devFillBtn}
+                    disabled={loading}
+                  >
+                    <Text style={styles.devFillText}>{DEV_TEST_DRIVER_LOGIN_BUTTON_LABEL}</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    onPress={handleFillTestDriverAltLogin}
+                    style={styles.devFillBtn}
+                    disabled={loading}
+                  >
+                    <Text style={styles.devFillText}>{DEV_TEST_DRIVER_ALT_LOGIN_BUTTON_LABEL}</Text>
+                  </TouchableOpacity>
                   <TouchableOpacity
                     onPress={handleFillTestDoctorLogin}
                     style={[styles.devFillBtn, styles.devFillBtnHalf]}

@@ -93,7 +93,9 @@ export const createOpeningHour = async (_restaurantId: number, data: OpeningHour
 
 const API_URL = baseAPI;
 
-export const googleAPi = 'AIzaSyDn1X_BlFj-57ydasP6uZK_X_WTERNJb78';
+export const googleAPi = (
+  process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY ?? ''
+).trim();
 
 export const apiUrl = baseAPI;
 

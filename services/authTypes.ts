@@ -8,7 +8,23 @@ export type BusinessProfilePayload = {
   isActive: boolean;
 };
 
-export type DriverServiceMode = 'taxi' | 'food_delivery' | 'parcel_delivery';
+export type DriverServiceMode =
+  | 'taxi'
+  | 'food_delivery'
+  | 'parcel_delivery'
+  | 'store_delivery'
+  | 'grocery'
+  | 'medical'
+  | 'other';
+
+/** Backend vehicle service usage keys sent when going online for delivery. */
+export type DriverOnlineService =
+  | 'taxi'
+  | 'food_delivery'
+  | 'parcel_delivery'
+  | 'product_delivery'
+  | 'grocery_delivery'
+  | 'medical_delivery';
 
 export type AuthSessionPayload = {
   access: string;
@@ -26,6 +42,7 @@ export type AuthSessionPayload = {
   user?: Record<string, unknown>;
   business_profile?: BusinessProfilePayload;
   driver_service_modes?: DriverServiceMode[];
+  approved_service_usages?: string[];
 };
 
 export function normalizeAuthResponse(data: Record<string, unknown>): AuthSessionPayload {
@@ -56,6 +73,7 @@ export function normalizeAuthResponse(data: Record<string, unknown>): AuthSessio
   }
 
   const driverModes = data.driver_service_modes as DriverServiceMode[] | undefined;
+  const approvedUsages = data.approved_service_usages as string[] | undefined;
 
   return {
     access,
@@ -73,6 +91,7 @@ export function normalizeAuthResponse(data: Record<string, unknown>): AuthSessio
     user: data.user as Record<string, unknown> | undefined,
     business_profile,
     driver_service_modes: Array.isArray(driverModes) ? driverModes : undefined,
+    approved_service_usages: Array.isArray(approvedUsages) ? approvedUsages : undefined,
   };
 }
 

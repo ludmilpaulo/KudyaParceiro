@@ -1,4 +1,5 @@
 // Define types for the nested structures within the order response
+import type { DriverSummary } from "./types";
 
 export interface Customer {
     id: number;
@@ -35,7 +36,7 @@ export interface Customer {
     id: number;
     customer: Customer;
     restaurant: Restaurant;
-    driver: any; // or you can define a Driver type if you have it
+    driver: DriverSummary | null;
     order_details: OrderDetail[];
     total: string;
     status: string;

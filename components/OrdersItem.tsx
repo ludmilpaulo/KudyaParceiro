@@ -10,7 +10,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { useNavigation } from "@react-navigation/native";
+import { useAppNavigation } from "../navigation/hooks";
 import { UserOrder } from "../services/ordertypes";
 import { baseAPI } from "../services/types";
 import { useSelector } from "react-redux";
@@ -22,7 +22,7 @@ interface OrdersItemProps {
 }
 
 const OrdersItem: React.FC<OrdersItemProps> = ({ orderReady }) => {
-  const navigation = useNavigation<any>();
+  const navigation = useAppNavigation();
   const url = baseAPI;
   const [rejectedCount, setRejectedCount] = useState(0);
   const [rejectedOrders, setRejectedOrders] = useState<number[]>([]);

@@ -7,7 +7,7 @@ import { baseAPI } from '../../services/types';
 
 const RevenueComponent = () => {
   const user = useSelector(selectUser);
-  const [revenue, setRevenue] = useState<any>({});
+  const [revenue, setRevenue] = useState<Record<string, number>>({});
 
   useEffect(() => {
     axios.post(`${baseAPI}/revenue/`, { access_token: user.token })
@@ -18,10 +18,10 @@ const RevenueComponent = () => {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Receita da Semana</Text>
-      {Object.entries(revenue).map(([day, amount]: any) => (
+      {Object.entries(revenue).map(([day, amount]) => (
         <View key={day} style={styles.revenueItem}>
           <Text style={styles.day}>{day}</Text>
-          <Text style={styles.amount}>R$ {amount.toFixed(2)}</Text>
+          <Text style={styles.amount}>R$ {Number(amount).toFixed(2)}</Text>
         </View>
       ))}
     </View>

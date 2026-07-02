@@ -4,31 +4,19 @@ import { Feather, Ionicons, AntDesign } from "@expo/vector-icons";
 import { View, StyleSheet } from "react-native";
 import { BottomTabBar } from "@react-navigation/bottom-tabs";
 import { LinearGradient } from "expo-linear-gradient";
-import { useSelector } from "react-redux";
 import EntregadorDashboard from "../screens/EntregadorDashboard";
 import RestaurantMap from "../screens/RestaurantMap";
 import CustomerDelivery from "../screens/CustomerDelivery";
 import AccountScreen from "../screens/AccountScreen";
 import DriverTasksScreen from "../screens/DriverTasksScreen";
-import { selectUser } from "../redux/slices/authSlice";
 import { useTranslation } from "../hooks/useTranslation";
-import type { DriverServiceMode } from "../services/authTypes";
+import { useDriverCapabilities } from "../hooks/useDriverCapabilities";
 
 const Tab = createBottomTabNavigator();
 
-function hasMode(modes: DriverServiceMode[] | undefined, mode: DriverServiceMode): boolean {
-  if (!modes || modes.length === 0) return true;
-  return modes.includes(mode);
-}
-
 const MainTabNavigator = () => {
   const { t } = useTranslation();
-  const user = useSelector(selectUser);
-  const modes = user?.driver_service_modes as DriverServiceMode[] | undefined;
-
-  const showFood = hasMode(modes, 'food_delivery');
-  const showTaxi = hasMode(modes, 'taxi');
-  const showParcel = hasMode(modes, 'parcel_delivery');
+  const { showFood, showTaxi, showParcel } = useDriverCapabilities();
 
   return (
     <Tab.Navigator
@@ -53,7 +41,7 @@ const MainTabNavigator = () => {
         </View>
       )}
     >
-      {(showFood || (!showTaxi && !showParcel)) && (
+      {showFood && (
         <Tab.Screen
           name="FoodDeliveries"
           component={EntregadorDashboard}

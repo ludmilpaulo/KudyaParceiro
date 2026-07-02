@@ -6,6 +6,8 @@ import { useSelector } from 'react-redux';
 import * as ImagePicker from 'expo-image-picker';
 import { selectUser } from '../../redux/slices/authSlice';
 import { baseAPI } from '../../services/types';
+import { baseAPI } from '../../services/types';
+import { appendFormDataFile } from '../../utils/formDataFile';
 
 
 const ProfileScreen = () => {
@@ -58,11 +60,11 @@ const ProfileScreen = () => {
       formData.append('phone', profileData.phone);
       formData.append('address', profileData.address);
       if (profileData.avatar) {
-        formData.append('avatar', {
+        appendFormDataFile(formData, 'avatar', {
           uri: profileData.avatar,
           name: 'avatar.jpg',
           type: 'image/jpeg',
-        } as any);
+        });
       }
       await axios.post(`${baseAPI}/driver/profile/update/`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' },

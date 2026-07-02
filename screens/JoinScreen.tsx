@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
+import { useAppNavigation } from '../navigation/hooks';
 import { MotiView } from 'moti';
 import { useTranslation } from '../hooks/useTranslation';
 import LanguagePicker from '../components/LanguagePicker';
@@ -20,7 +20,7 @@ import { theme } from '../configs/theme';
 import { analytics } from '../utils/mixpanel';
 
 const JoinScreen = () => {
-  const navigation = useNavigation<any>();
+  const navigation = useAppNavigation();
   const { t } = useTranslation();
   const { width } = useWindowDimensions();
   const isWide = width >= 768;

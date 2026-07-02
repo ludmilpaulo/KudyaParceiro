@@ -36,14 +36,24 @@ const ChatComponent: React.FC<ChatComponentProps> = ({ user = "driver", accessTo
       console.log("Fetching chat messages for order ID:", orderId);
       const response = await axios.get(`${baseAPI}/info/get_order_chat/${orderId}/`);
       console.log("Chat messages fetched:", response.data);
-      const chatMessages = response.data.map((chatMessage: any) => ({
+interface ChatApiMessage {
+  id: string;
+  message: string;
+  timestamp: string;
+  sender: string | { avatar?: string };
+  sender_username: string;
+}
+
+      const chatMessages = response.data.map((chatMessage: ChatApiMessage) => ({
         id: chatMessage.id,
         text: chatMessage.message,
         createdAt: new Date(chatMessage.timestamp),
         user: {
           id: chatMessage.sender,
           name: chatMessage.sender_username,
-          avatar: chatMessage.sender.avatar ? `${baseAPI}${chatMessage.sender.avatar}` : '',
+          avatar: typeof chatMessage.sender === 'object' && chatMessage.sender?.avatar
+            ? `${baseAPI}${chatMessage.sender.avatar}`
+            : '',
         },
       }));
       console.log("Formatted messages:", chatMessages);

@@ -2,10 +2,15 @@ import React, { useEffect, useState, useRef } from "react";
 import { ScrollView, StyleSheet, Text, Vibration, View, ActivityIndicator, Switch, Alert } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import OrdersItem from "../components/OrdersItem";
-import { useNavigation, useNavigationState } from "@react-navigation/native";
+import { useNavigationState } from "@react-navigation/native";
+import { useAppNavigation } from "../navigation/hooks";
 import { useSelector, useDispatch } from "react-redux";
 import { selectUser, logoutUser } from "../redux/slices/authSlice";
-import { getDriverProfile, getDriverOrders, updateDriverLocation, fetchOngoingOrder, fetchVerifiedOrder } from "../services/driverService";
+import { getDriverProfile, getDriverOrders, fetchOngoingOrder, fetchVerifiedOrder } from "../services/driverService";
+import { setDriverOnlineForService } from "../services/driverAvailabilityService";
+import { useDriverLocationSync } from "../hooks/useDriverLocationSync";
+import { useDriverCapabilities } from "../hooks/useDriverCapabilities";
+import { canGoOnlineForService, serviceBlockedMessage } from "../utils/driverServiceModes";
 import { UserOrder } from "../services/ordertypes";
 import * as Location from 'expo-location';
 import { Audio } from 'expo-av';
@@ -21,6 +26,7 @@ import FulfillmentPanel from "../features/fulfillment/components/FulfillmentPane
 const PUSH_PROJECT_ID = 'f848ca4d-cf74-4e6b-b42d-107d533158b8';
 
 const EntregadorDashboard = () => {
+  const { showFood, modes } = useDriverCapabilities();
   const [userOrder, setUserOrder] = useState<UserOrder[]>([]);
   const [loading, setLoading] = useState(false);
   const [isOnline, setIsOnline] = useState(false);
@@ -28,10 +34,13 @@ const EntregadorDashboard = () => {
   const locationIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const fetchDataIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  const user = useSelector(selectUser);
-  const navigation = useNavigation<any>();
+  const user = useSelector(selectUser) as { user_id?: number; token?: string; access_token?: string } | null;
+  const token = user?.access_token ?? user?.token ?? "";
+  const navigation = useAppNavigation();
   const dispatch = useDispatch();
   const sound = useRef<Audio.Sound | null>(null);
+
+  useDriverLocationSync(isOnline, token || undefined);
 
   const routes = useNavigationState(state => state.routes);
 
@@ -118,32 +127,40 @@ const EntregadorDashboard = () => {
   };
 
   const updateLocation = async () => {
-    console.log('Updating location');
     try {
       const currentLocation = await Location.getCurrentPositionAsync({});
-      console.log('Current location:', currentLocation);
       setLocation(currentLocation);
-      await updateDriverLocation(user?.user_id, user?.token, currentLocation.coords.latitude, currentLocation.coords.longitude);
     } catch (error) {
-      console.error("Erro ao atualizar localização do motorista:", error);
+      console.error("Erro ao obter localização do motorista:", error);
     }
   };
 
   const handleStatusChange = async (status: boolean) => {
-    console.log(`Status changed to: ${status}`);
-    setIsOnline(status);
+    if (!token) {
+      Alert.alert("Login", "Driver token required");
+      return;
+    }
+    if (status && !canGoOnlineForService(modes, 'food_delivery')) {
+      Alert.alert("Erro", serviceBlockedMessage('food_delivery'));
+      return;
+    }
+    const result = await setDriverOnlineForService(token, status, 'food_delivery');
+    if (!result.ok) {
+      Alert.alert("Erro", result.detail || "Complete verification before going online.");
+      return;
+    }
+    setIsOnline(Boolean(result.is_online));
     if (status) {
       const { status: locationStatus } = await Location.requestForegroundPermissionsAsync();
-      if (locationStatus !== 'granted') {
-        Alert.alert('Permissão de localização não concedida');
+      if (locationStatus !== "granted") {
+        Alert.alert("Permissão de localização não concedida");
+        await setDriverOnlineForService(token, false, 'food_delivery');
         setIsOnline(false);
         return;
       }
-      locationIntervalRef.current = setInterval(updateLocation, 3000); // Update location every 3 seconds
-      fetchDataIntervalRef.current = setInterval(fetchDataFromOrderEndpoint, 5000); // Fetch data every 5 seconds
-
-      // Fetch data immediately
-      console.log('Fetching data immediately after going online');
+      locationIntervalRef.current = setInterval(updateLocation, 3000);
+      fetchDataIntervalRef.current = setInterval(fetchDataFromOrderEndpoint, 5000);
+      await updateLocation();
       await fetchDataFromOrderEndpoint();
     } else {
       if (locationIntervalRef.current) {
@@ -204,12 +221,20 @@ const EntregadorDashboard = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.statusContainer}>
-        <Text style={styles.statusText}>Online</Text>
-        <Switch value={isOnline} onValueChange={handleStatusChange} />
-      </View>
+      {showFood ? (
+        <View style={styles.statusContainer}>
+          <Text style={styles.statusText}>Online</Text>
+          <Switch value={isOnline} onValueChange={handleStatusChange} />
+        </View>
+      ) : (
+        <View style={styles.statusContainer}>
+          <Text style={styles.noOrdersText}>
+            Your approved vehicle is not configured for food delivery.
+          </Text>
+        </View>
+      )}
       <ScrollView contentContainerStyle={styles.scrollViewContent}>
-        <FulfillmentPanel enabled={isOnline} />
+        {showFood ? <FulfillmentPanel enabled={isOnline} /> : null}
         {loading ? (
           <ActivityIndicator size="large" color="#0000ff" />
         ) : (

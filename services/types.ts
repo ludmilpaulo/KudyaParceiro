@@ -204,6 +204,13 @@ export interface JobApplication {
 
 ///////////////////////////////////////////
 
+export interface DriverSummary {
+  id?: number;
+  name?: string;
+  phone?: string;
+  avatar?: string | null;
+}
+
 export interface UserOrder {
   id: number;
   customer: {
@@ -219,7 +226,7 @@ export interface UserOrder {
     phone: string;
     address: string;
   };
-  driver: any; // You might want to define a proper type for the 'driver' field
+  driver: DriverSummary | null;
   order_details: {
     id: number;
     meal: {
@@ -260,7 +267,7 @@ export interface Order {
   id: number;
   customer: Customer;
   restaurant: Restaurant;
-  driver: any; // You might want to define a proper type for the 'driver' field
+  driver: DriverSummary | null;
   order_details: OrderDetail[];
   total: number;
   status: string;

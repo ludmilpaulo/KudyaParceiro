@@ -2,6 +2,8 @@ import { combineReducers, configureStore } from "@reduxjs/toolkit";
 import { TypedUseSelectorHook, useDispatch, useSelector } from "react-redux";
 import authReducer from "./slices/authSlice";
 import { doctorApi } from "./slices/doctorApi";
+import { driverApi } from "./slices/driverApi";
+import { driverDashboardApi } from "./slices/driverDashboardApi";
 import { notificationApi } from "./slices/notificationApi";
 import { partnerApi } from "./slices/partnerApi";
 import { languageApi, pushTokenApi } from "./slices/languageApi";
@@ -13,11 +15,14 @@ import { persistReducer, persistStore } from "redux-persist";
 const rootPersistConfig = {
   key: "root",
   storage: AsyncStorage,
+  whitelist: ["auth"],
 };
 
 const rootReducer = combineReducers({
   auth: authReducer,
   [doctorApi.reducerPath]: doctorApi.reducer,
+  [driverApi.reducerPath]: driverApi.reducer,
+  [driverDashboardApi.reducerPath]: driverDashboardApi.reducer,
   [notificationApi.reducerPath]: notificationApi.reducer,
   [partnerApi.reducerPath]: partnerApi.reducer,
   [languageApi.reducerPath]: languageApi.reducer,
@@ -34,6 +39,8 @@ export const store = configureStore({
       serializableCheck: false,
     })
       .concat(doctorApi.middleware)
+      .concat(driverApi.middleware)
+      .concat(driverDashboardApi.middleware)
       .concat(notificationApi.middleware)
       .concat(partnerApi.middleware)
       .concat(languageApi.middleware)

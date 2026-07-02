@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { StyleSheet, View, Text, TouchableOpacity, Alert, Linking, Image, ActivityIndicator, Modal, ScrollView } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
 import * as Location from 'expo-location';
-import { useRoute, useNavigation, RouteProp } from '@react-navigation/native';
+import { useRoute, RouteProp } from '@react-navigation/native';
+import { useAppNavigation } from '../navigation/hooks';
 import { UserOrder } from '../services/ordertypes';
 import { calculateDistance } from '../utils/distance';
 import { baseAPI } from '../services/types';
@@ -16,7 +17,7 @@ type RootStackParamList = {
 
 const RestaurantMap = () => {
   const route = useRoute<RouteProp<RootStackParamList, 'RestaurantMap'>>();
-  const navigation = useNavigation<any>();
+  const navigation = useAppNavigation();
   const user = useSelector(selectUser);
   const [order, setOrder] = useState<UserOrder | null>(route.params?.order || null);
   const [currentLocation, setCurrentLocation] = useState<Location.LocationObject | null>(null);

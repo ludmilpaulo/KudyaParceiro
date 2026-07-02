@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { StyleSheet, View, Text, TouchableOpacity, Alert, Linking, ActivityIndicator, Modal, TextInput } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
 import * as Location from 'expo-location';
-import { useRoute, useNavigation, RouteProp } from '@react-navigation/native';
+import { useRoute, RouteProp } from '@react-navigation/native';
+import { useAppNavigation } from '../navigation/hooks';
 import { UserOrder } from '../services/ordertypes';
 import { calculateDistance } from '../utils/distance';
 import { baseAPI } from '../services/types';
@@ -22,7 +23,7 @@ type CustomerDeliveryRouteProp = RouteProp<RootStackParamList, 'CustomerDelivery
 
 const CustomerDelivery = () => {
   const route = useRoute<CustomerDeliveryRouteProp>();
-  const navigation = useNavigation<any>();
+  const navigation = useAppNavigation();
   const user = useSelector(selectUser);
   const [order, setOrder] = useState<UserOrder | null>(route.params?.order || null);
   const [currentLocation, setCurrentLocation] = useState<Location.LocationObject | null>(null);
@@ -104,10 +105,21 @@ const CustomerDelivery = () => {
     }
   }, [order]);
 
-  if (!order) {
+  useEffect(() => {
+    if (order || loading) return;
     Alert.alert("Erro", "Detalhes do pedido não encontrados.");
     if (navigation.canGoBack()) {
       navigation.goBack();
+    }
+  }, [order, loading, navigation]);
+
+  if (!order) {
+    if (loading) {
+      return (
+        <View style={styles.center}>
+          <ActivityIndicator size="large" />
+        </View>
+      );
     }
     return null;
   }
@@ -288,6 +300,11 @@ const CustomerDelivery = () => {
 };
 
 const styles = StyleSheet.create({
+  center: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   container: {
     flex: 1,
   },

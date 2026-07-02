@@ -26,7 +26,7 @@ class Analytics {
   }
 
   // Track events
-  track(eventName: string, properties?: Record<string, any>) {
+  track(eventName: string, properties?: Record<string, unknown>) {
     this.mixpanelInstance.track(eventName, properties);
   }
 
@@ -36,12 +36,12 @@ class Analytics {
   }
 
   // Set user properties
-  setUserProperties(properties: Record<string, any>) {
+  setUserProperties(properties: Record<string, unknown>) {
     this.mixpanelInstance.getPeople().set(properties);
   }
 
   // Track user signup
-  trackSignup(userId: string, properties?: Record<string, any>) {
+  trackSignup(userId: string, properties?: Record<string, unknown>) {
     this.identify(userId);
     this.track('User Signup', properties);
     this.setUserProperties({
@@ -53,7 +53,7 @@ class Analytics {
   }
 
   // Track user login
-  trackLogin(userId: string, properties?: Record<string, any>) {
+  trackLogin(userId: string, properties?: Record<string, unknown>) {
     this.identify(userId);
     this.track('User Login', properties);
   }
@@ -65,7 +65,7 @@ class Analytics {
   }
 
   // Track screen views
-  trackScreenView(screenName: string, properties?: Record<string, any>) {
+  trackScreenView(screenName: string, properties?: Record<string, unknown>) {
     this.track('Screen View', {
       screen: screenName,
       ...properties,
@@ -89,7 +89,7 @@ class Analytics {
   }
 
   // Track product view
-  trackProductView(productId: string, productName: string, properties?: Record<string, any>) {
+  trackProductView(productId: string, productName: string, properties?: Record<string, unknown>) {
     this.track('Product Viewed', {
       product_id: productId,
       product_name: productName,
@@ -163,7 +163,7 @@ class Analytics {
   }
 
   // Track error
-  trackError(error: string, errorDetails?: any) {
+  trackError(error: string, errorDetails?: unknown) {
     this.track('Error Occurred', {
       error_message: error,
       error_details: errorDetails,
@@ -171,7 +171,7 @@ class Analytics {
   }
 
   // Set super properties (sent with every event)
-  setSuperProperties(properties: Record<string, any>) {
+  setSuperProperties(properties: Record<string, unknown>) {
     this.mixpanelInstance.registerSuperProperties(properties);
   }
 

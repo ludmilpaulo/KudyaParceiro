@@ -6,6 +6,8 @@ import { selectUser } from '../../redux/slices/authSlice';
 import { baseAPI } from '../../services/types';
 import { Picker } from '@react-native-picker/picker';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import type { UserOrder } from '../../services/ordertypes';
+import type { DateTimePickerEvent } from '@react-native-community/datetimepicker';
 
 interface Revenue {
   [key: string]: number;
@@ -24,8 +26,8 @@ const daysOfWeekInPortuguese: { [key in 'Mon' | 'Tue' | 'Wed' | 'Thu' | 'Fri' | 
 const RevenueScreen = () => {
   const user = useSelector(selectUser);
   const [revenue, setRevenue] = useState<Revenue>({});
-  const [paidOrders, setPaidOrders] = useState<any[]>([]);
-  const [unpaidOrders, setUnpaidOrders] = useState<any[]>([]);
+  const [paidOrders, setPaidOrders] = useState<UserOrder[]>([]);
+  const [unpaidOrders, setUnpaidOrders] = useState<UserOrder[]>([]);
   const [filterType, setFilterType] = useState<string>('week');
   const [startDate, setStartDate] = useState<Date>(new Date());
   const [endDate, setEndDate] = useState<Date>(new Date());
@@ -65,13 +67,13 @@ const RevenueScreen = () => {
     fetchRevenue();
   }, [filterType, startDate, endDate, user.token]);
 
-  const onStartDateChange = (event: any, selectedDate?: Date) => {
+  const onStartDateChange = (_event: DateTimePickerEvent, selectedDate?: Date) => {
     const currentDate = selectedDate || startDate;
     setShowStartPicker(Platform.OS === 'ios');
     setStartDate(currentDate);
   };
 
-  const onEndDateChange = (event: any, selectedDate?: Date) => {
+  const onEndDateChange = (_event: DateTimePickerEvent, selectedDate?: Date) => {
     const currentDate = selectedDate || endDate;
     setShowEndPicker(Platform.OS === 'ios');
     setEndDate(currentDate);

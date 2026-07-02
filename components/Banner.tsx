@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, ImageBackground, TouchableOpacity, ScrollView, Image } from 'react-native';
 import tailwind from 'tailwind-react-native-classnames';
 import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
-import { useNavigation} from "@react-navigation/native";
+import { useAppNavigation } from '../navigation/hooks';
 import { useTranslation } from '../hooks/useTranslation';
 import { SvgUri } from 'react-native-svg';
 interface Restaurant {
@@ -29,7 +29,7 @@ interface BannerProps {
 }
 
 const Banner: React.FC<BannerProps> = ({ title, backgroundImage, backgroundApp, restaurants, bottomImage, aboutText, userLocation }) => {
-    const navigation = useNavigation<any>();
+    const navigation = useAppNavigation();
     const { t } = useTranslation();
     return (
     <View style={tailwind`flex-1`}>
