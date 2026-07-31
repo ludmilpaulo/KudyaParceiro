@@ -130,7 +130,6 @@ export type DoctorTranslationKey =
   | "camera"
   | "gallery"
   | "selectDate"
-  | "fillTestLogin"
   | "backToVerification"
   | "openProfileEditor"
   | "saveProfileBasics"
@@ -270,7 +269,6 @@ const doctorTranslations: DoctorTranslations = {
     camera: "Camera",
     gallery: "Gallery",
     selectDate: "Select date",
-    fillTestLogin: "Fill test doctor login",
     backToVerification: "Back to verification",
     openProfileEditor: "Open profile editor",
     saveProfileBasics: "Save profile basics",
@@ -407,7 +405,6 @@ const doctorTranslations: DoctorTranslations = {
     camera: "Câmara",
     gallery: "Galeria",
     selectDate: "Selecionar data",
-    fillTestLogin: "Preencher login de teste (médico)",
     backToVerification: "Voltar à verificação",
     openProfileEditor: "Abrir editor de perfil",
     saveProfileBasics: "Guardar dados básicos do perfil",
@@ -544,7 +541,6 @@ const doctorTranslations: DoctorTranslations = {
     camera: "Caméra",
     gallery: "Galerie",
     selectDate: "Sélectionner la date",
-    fillTestLogin: "Remplir connexion test (médecin)",
     backToVerification: "Retour à la vérification",
     openProfileEditor: "Ouvrir l'éditeur de profil",
     saveProfileBasics: "Enregistrer les bases du profil",
@@ -681,7 +677,6 @@ const doctorTranslations: DoctorTranslations = {
     camera: "Cámara",
     gallery: "Galería",
     selectDate: "Seleccionar fecha",
-    fillTestLogin: "Rellenar login de prueba (médico)",
     backToVerification: "Volver a verificación",
     openProfileEditor: "Abrir editor de perfil",
     saveProfileBasics: "Guardar datos básicos del perfil",

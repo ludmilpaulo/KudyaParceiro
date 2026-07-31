@@ -6,7 +6,6 @@ import { useSelector } from 'react-redux';
 import * as ImagePicker from 'expo-image-picker';
 import { selectUser } from '../../redux/slices/authSlice';
 import { baseAPI } from '../../services/types';
-import { baseAPI } from '../../services/types';
 import { appendFormDataFile } from '../../utils/formDataFile';
 
 

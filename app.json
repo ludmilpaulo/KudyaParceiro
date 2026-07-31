@@ -3,7 +3,7 @@
     "name": "Kudya Parceiro",
     "slug": "kudya-parceiro",
     "scheme": "kudyaparceiro",
-      "version": "1.0.5",
+      "version": "1.0.7",
     "orientation": "portrait",
     "icon": "./assets/azul.png",
     "userInterfaceStyle": "light",
@@ -13,7 +13,7 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "buildNumber": "5",
+      "buildNumber": "7",
       "supportsTablet": true,
       "infoPlist": {
         "CFBundleDisplayName": "Kudya Parceiro",
@@ -35,7 +35,7 @@
         "LOCATION"
       ],
       "package": "com.ludmil.KudyaParceiro",
-      "versionCode": 15
+      "versionCode": 17
     },
     "web": {
       "favicon": "./assets/azul.png"

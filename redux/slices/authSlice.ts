@@ -5,9 +5,15 @@ export type AuthUser = {
   user_id: number;
   token: string;
   access_token?: string;
+  access?: string;
   username?: string;
   role?: string;
   driver_service_modes?: string[];
+  first_name?: string;
+  last_name?: string;
+  phone?: string;
+  address?: string;
+  user?: Record<string, unknown>;
 };
 
 type AuthState = {

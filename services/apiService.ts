@@ -45,22 +45,24 @@ export const fetchProducts = async (_userId: number): Promise<Product[]> => {
   return fetchPartnerProducts();
 };
 
-export const addProduct = async (formData: FormData): Promise<Product> => {
+function stripLegacyAuthFormFields(formData: FormData): FormData {
   const stripped = new FormData();
-  for (const [key, value] of formData.entries()) {
+  const entries = (
+    formData as FormData & { entries(): IterableIterator<[string, FormDataEntryValue]> }
+  ).entries();
+  for (const [key, value] of entries) {
     if (key === 'user_id' || key === 'access_token') continue;
     stripped.append(key, value);
   }
-  return createPartnerProduct(stripped);
+  return stripped;
+}
+
+export const addProduct = async (formData: FormData): Promise<Product> => {
+  return createPartnerProduct(stripLegacyAuthFormFields(formData));
 };
 
 export const updateProduct = async (productId: number, formData: FormData): Promise<void> => {
-  const stripped = new FormData();
-  for (const [key, value] of formData.entries()) {
-    if (key === 'user_id' || key === 'access_token') continue;
-    stripped.append(key, value);
-  }
-  await updatePartnerProduct(productId, stripped);
+  await updatePartnerProduct(productId, stripLegacyAuthFormFields(formData));
 };
 
 export const deleteProduct = async (productId: number, _userId: number): Promise<void> => {
