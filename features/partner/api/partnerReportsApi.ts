@@ -4,11 +4,25 @@ import { getDeviceLanguage } from '../../../services/api';
 const API_V1_PREFIX = '/api/v1';
 
 export type PartnerReportData = {
+  days?: number;
+  labels?: string[];
   revenue: number[];
   orders: number[];
   products?: { labels: string[]; data: number[] };
   drivers?: { labels: string[]; data: number[] };
   customers?: { labels: string[]; data: number[] };
+  summary?: {
+    revenue_total?: number;
+    orders_total?: number;
+  };
+  comparison?: {
+    revenue?: Record<string, unknown>;
+    orders?: Record<string, unknown>;
+  };
+  period_start?: string;
+  period_end?: string;
+  previous_period_start?: string;
+  previous_period_end?: string;
   total_store_amount?: number;
   total_paid_amount?: number;
   proof_of_payment?: string;
@@ -48,10 +62,12 @@ async function partnerFetch(path: string, init: RequestInit = {}) {
 
 export async function fetchPartnerReport(params?: {
   timeframe?: string;
+  days?: number;
   start_date?: string;
   end_date?: string;
 }): Promise<PartnerReportData> {
   const query = new URLSearchParams();
+  if (params?.days) query.set('days', String(params.days));
   if (params?.timeframe) query.set('timeframe', params.timeframe);
   if (params?.start_date) query.set('start_date', params.start_date);
   if (params?.end_date) query.set('end_date', params.end_date);

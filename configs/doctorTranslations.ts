@@ -90,6 +90,30 @@ export type DoctorTranslationKey =
   | "pendingRequests"
   | "availableSlotsWeek"
   | "monthlyEarnings"
+  | "analyticsTitle"
+  | "appointmentsTrend"
+  | "appointmentsByStatus"
+  | "appointmentTypeBreakdown"
+  | "earningsTrend"
+  | "topServices"
+  | "noAnalyticsData"
+  | "last7Days"
+  | "days30"
+  | "days90"
+  | "apptStatusPending"
+  | "apptStatusConfirmed"
+  | "apptStatusInProgress"
+  | "apptStatusCompleted"
+  | "apptStatusCancelled"
+  | "apptStatusNoShow"
+  | "apptTypePhysical"
+  | "apptTypeOnline"
+  | "vsPreviousPeriod"
+  | "comparisonTitle"
+  | "exportCsv"
+  | "exportPdf"
+  | "appointmentsMetric"
+  | "earningsMetric"
   | "recentActivity"
   | "quickActions"
   | "completeProfileAction"
@@ -229,6 +253,30 @@ const doctorTranslations: DoctorTranslations = {
     pendingRequests: "Pending requests",
     availableSlotsWeek: "Available slots this week",
     monthlyEarnings: "Monthly earnings",
+    analyticsTitle: "Analytics",
+    appointmentsTrend: "Appointments trend",
+    appointmentsByStatus: "Appointments by status",
+    appointmentTypeBreakdown: "Consultation type",
+    earningsTrend: "Earnings trend",
+    topServices: "Top services",
+    noAnalyticsData: "No appointment activity in this period yet.",
+    last7Days: "Last 7 days",
+    days30: "Last 30 days",
+    days90: "Last 90 days",
+    apptStatusPending: "Pending",
+    apptStatusConfirmed: "Confirmed",
+    apptStatusInProgress: "In progress",
+    apptStatusCompleted: "Completed",
+    apptStatusCancelled: "Cancelled",
+    apptStatusNoShow: "No show",
+    apptTypePhysical: "Physical",
+    apptTypeOnline: "Online",
+    vsPreviousPeriod: "Compared with previous period",
+    comparisonTitle: "Period comparison",
+    exportCsv: "Export CSV",
+    exportPdf: "Export PDF",
+    appointmentsMetric: "Appointments",
+    earningsMetric: "Earnings",
     recentActivity: "Recent activity",
     quickActions: "Quick actions",
     completeProfileAction: "Complete profile",
@@ -365,6 +413,30 @@ const doctorTranslations: DoctorTranslations = {
     pendingRequests: "Pedidos pendentes",
     availableSlotsWeek: "Horários disponíveis esta semana",
     monthlyEarnings: "Ganhos mensais",
+    analyticsTitle: "Análises",
+    appointmentsTrend: "Tendência de consultas",
+    appointmentsByStatus: "Consultas por estado",
+    appointmentTypeBreakdown: "Tipo de consulta",
+    earningsTrend: "Tendência de ganhos",
+    topServices: "Serviços principais",
+    noAnalyticsData: "Ainda não há actividade de consultas neste período.",
+    last7Days: "Últimos 7 dias",
+    days30: "Últimos 30 dias",
+    days90: "Últimos 90 dias",
+    apptStatusPending: "Pendente",
+    apptStatusConfirmed: "Confirmada",
+    apptStatusInProgress: "Em curso",
+    apptStatusCompleted: "Concluída",
+    apptStatusCancelled: "Cancelada",
+    apptStatusNoShow: "Falta",
+    apptTypePhysical: "Presencial",
+    apptTypeOnline: "Online",
+    vsPreviousPeriod: "Comparado com o período anterior",
+    comparisonTitle: "Comparação do período",
+    exportCsv: "Exportar CSV",
+    exportPdf: "Exportar PDF",
+    appointmentsMetric: "Consultas",
+    earningsMetric: "Ganhos",
     recentActivity: "Atividade recente",
     quickActions: "Ações rápidas",
     completeProfileAction: "Completar perfil",
@@ -501,6 +573,30 @@ const doctorTranslations: DoctorTranslations = {
     pendingRequests: "Demandes en attente",
     availableSlotsWeek: "Créneaux disponibles cette semaine",
     monthlyEarnings: "Revenus mensuels",
+    analyticsTitle: "Analyses",
+    appointmentsTrend: "Tendance des rendez-vous",
+    appointmentsByStatus: "Rendez-vous par statut",
+    appointmentTypeBreakdown: "Type de consultation",
+    earningsTrend: "Tendance des revenus",
+    topServices: "Services principaux",
+    noAnalyticsData: "Pas encore d'activité de rendez-vous sur cette période.",
+    last7Days: "7 derniers jours",
+    days30: "30 derniers jours",
+    days90: "90 derniers jours",
+    apptStatusPending: "En attente",
+    apptStatusConfirmed: "Confirmé",
+    apptStatusInProgress: "En cours",
+    apptStatusCompleted: "Terminé",
+    apptStatusCancelled: "Annulé",
+    apptStatusNoShow: "Absent",
+    apptTypePhysical: "Présentiel",
+    apptTypeOnline: "En ligne",
+    vsPreviousPeriod: "Comparé à la période précédente",
+    comparisonTitle: "Comparaison de période",
+    exportCsv: "Exporter CSV",
+    exportPdf: "Exporter PDF",
+    appointmentsMetric: "Rendez-vous",
+    earningsMetric: "Revenus",
     recentActivity: "Activité récente",
     quickActions: "Actions rapides",
     completeProfileAction: "Compléter le profil",
@@ -637,6 +733,30 @@ const doctorTranslations: DoctorTranslations = {
     pendingRequests: "Solicitudes pendientes",
     availableSlotsWeek: "Horarios disponibles esta semana",
     monthlyEarnings: "Ingresos mensuales",
+    analyticsTitle: "Análisis",
+    appointmentsTrend: "Tendencia de citas",
+    appointmentsByStatus: "Citas por estado",
+    appointmentTypeBreakdown: "Tipo de consulta",
+    earningsTrend: "Tendencia de ingresos",
+    topServices: "Servicios principales",
+    noAnalyticsData: "Aún no hay actividad de citas en este período.",
+    last7Days: "Últimos 7 días",
+    days30: "Últimos 30 días",
+    days90: "Últimos 90 días",
+    apptStatusPending: "Pendiente",
+    apptStatusConfirmed: "Confirmada",
+    apptStatusInProgress: "En curso",
+    apptStatusCompleted: "Completada",
+    apptStatusCancelled: "Cancelada",
+    apptStatusNoShow: "No asistió",
+    apptTypePhysical: "Presencial",
+    apptTypeOnline: "En línea",
+    vsPreviousPeriod: "Comparado con el período anterior",
+    comparisonTitle: "Comparación del período",
+    exportCsv: "Exportar CSV",
+    exportPdf: "Exportar PDF",
+    appointmentsMetric: "Citas",
+    earningsMetric: "Ingresos",
     recentActivity: "Actividad reciente",
     quickActions: "Acciones rápidas",
     completeProfileAction: "Completar perfil",
@@ -701,4 +821,26 @@ export function verificationStatusLabel(status: string, locale: SupportedLocale)
   };
   const translationKey = map[status];
   return translationKey ? doctorT(translationKey, locale) : status;
+}
+
+export function appointmentStatusLabel(status: string, locale: SupportedLocale): string {
+  const map: Record<string, DoctorTranslationKey> = {
+    pending: "apptStatusPending",
+    confirmed: "apptStatusConfirmed",
+    in_progress: "apptStatusInProgress",
+    completed: "apptStatusCompleted",
+    cancelled: "apptStatusCancelled",
+    no_show: "apptStatusNoShow",
+  };
+  const translationKey = map[status];
+  return translationKey ? doctorT(translationKey, locale) : status;
+}
+
+export function appointmentTypeLabel(type: string, locale: SupportedLocale): string {
+  const map: Record<string, DoctorTranslationKey> = {
+    physical: "apptTypePhysical",
+    online: "apptTypeOnline",
+  };
+  const translationKey = map[type];
+  return translationKey ? doctorT(translationKey, locale) : type;
 }

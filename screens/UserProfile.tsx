@@ -9,20 +9,32 @@ import {
   Image,
   StyleSheet,
   ScrollView,
+  Platform,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useAppNavigation } from "../navigation/hooks";
 import * as ImagePicker from "expo-image-picker";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { selectUser } from "../redux/slices/authSlice";
+import { loginUser, selectUser } from "../redux/slices/authSlice";
 import { updateDriverProfile } from "../services/driverService";
 import { baseAPI } from "../services/types";
 import { useDriverTranslation } from "../hooks/useDriverTranslation";
 import { useGetDriverVerificationStatusQuery } from "../redux/slices/driverApi";
+import { appendFormDataFile } from "../utils/formDataFile";
+
+function notify(title: string, message: string, onOk?: () => void) {
+  if (Platform.OS === "web" && typeof window !== "undefined") {
+    window.alert(`${title}\n\n${message}`);
+    onOk?.();
+    return;
+  }
+  Alert.alert(title, message, onOk ? [{ text: "OK", onPress: onOk }] : undefined);
+}
 
 const UserProfile: React.FC = () => {
   const navigation = useAppNavigation();
+  const dispatch = useDispatch();
   const { dt } = useDriverTranslation();
   const user = useSelector(selectUser);
   const { data: verification, refetch: refetchVerification } = useGetDriverVerificationStatusQuery();
@@ -44,6 +56,12 @@ const UserProfile: React.FC = () => {
   const [accountNumber, setAccountNumber] = useState("");
   const [avatar, setAvatar] = useState<{ uri: string } | null>(null);
   const [loading, setLoading] = useState(false);
+  const [statusMessage, setStatusMessage] = useState<{
+    type: "success" | "error";
+    text: string;
+  } | null>(null);
+
+  const accessToken = String(user?.token || user?.access || user?.access_token || "").trim();
 
   useEffect(() => {
     const loadProfile = async () => {
@@ -65,13 +83,17 @@ const UserProfile: React.FC = () => {
         if (details.bank) setBank(String(details.bank));
         if (details.account_number) setAccountNumber(String(details.account_number));
         if (details.avatar && typeof details.avatar === "string") {
-          setAvatar({ uri: details.avatar.startsWith("http") ? details.avatar : `${baseAPI}${details.avatar}` });
+          setAvatar({
+            uri: details.avatar.startsWith("http")
+              ? details.avatar
+              : `${baseAPI}${details.avatar}`,
+          });
         }
       } catch {
         // ignore — form still editable with auth user defaults
       }
     };
-    loadProfile();
+    void loadProfile();
   }, [user?.user_id]);
 
   const handleImagePicker = async (source: "camera" | "library") => {
@@ -79,7 +101,7 @@ const UserProfile: React.FC = () => {
     if (source === "camera") {
       const permission = await ImagePicker.requestCameraPermissionsAsync();
       if (!permission.granted) {
-        Alert.alert(dt("error"), dt("cameraPermissionRequired"));
+        notify(dt("error"), dt("cameraPermissionRequired"));
         return;
       }
       result = await ImagePicker.launchCameraAsync({
@@ -91,7 +113,7 @@ const UserProfile: React.FC = () => {
     } else {
       const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
       if (!permission.granted) {
-        Alert.alert(dt("error"), dt("galleryPermissionRequired"));
+        notify(dt("error"), dt("galleryPermissionRequired"));
         return;
       }
       result = await ImagePicker.launchImageLibraryAsync({
@@ -109,9 +131,19 @@ const UserProfile: React.FC = () => {
 
   const handleSubmit = async () => {
     if (loading) return;
+    setStatusMessage(null);
 
     if (!firstName.trim() || !lastName.trim() || !phone.trim() || !bank.trim() || !accountNumber.trim()) {
-      Alert.alert(dt("error"), dt("fillRequiredFields"));
+      const msg = dt("fillRequiredFields");
+      setStatusMessage({ type: "error", text: msg });
+      notify(dt("error"), msg);
+      return;
+    }
+
+    if (!accessToken) {
+      const msg = dt("sessionExpired");
+      setStatusMessage({ type: "error", text: msg });
+      notify(dt("error"), msg);
       return;
     }
 
@@ -124,30 +156,58 @@ const UserProfile: React.FC = () => {
       formData.append("address", address.trim());
       formData.append("bank", bank.trim());
       formData.append("account_number", accountNumber.trim());
-      formData.append(
-        "access_token",
-        String(user?.access_token || user?.token || user?.access || ""),
-      );
+      formData.append("access_token", accessToken);
 
       if (avatar?.uri && !avatar.uri.startsWith("http")) {
         const localUri = avatar.uri;
         const filename = localUri.split("/").pop() || "avatar.jpg";
         const match = /\.(\w+)$/.exec(filename);
         const type = match ? `image/${match[1]}` : "image/jpeg";
-        formData.append("avatar", { uri: localUri, name: filename, type } as unknown as Blob);
+        await appendFormDataFile(formData, "avatar", {
+          uri: localUri,
+          name: filename,
+          type,
+        });
       }
 
-      const response = await updateDriverProfile(formData);
-      if (response.status === "Os Seus Dados enviados com sucesso") {
-        await refetchVerification();
-        Alert.alert(dt("success"), dt("saveProfile"), [
-          { text: "OK", onPress: () => navigation.goBack() },
-        ]);
-      } else {
-        Alert.alert(dt("error"), dt("error"));
+      const response = await updateDriverProfile(formData, { accessToken });
+      const ok =
+        response.ok === true ||
+        response.status === "Os Seus Dados enviados com sucesso" ||
+        Boolean(response.status && !response.detail);
+
+      if (!ok) {
+        throw new Error(response.detail || dt("error"));
       }
-    } catch {
-      Alert.alert(dt("error"), dt("error"));
+
+      if (user) {
+        dispatch(
+          loginUser({
+            ...user,
+            first_name: firstName.trim(),
+            last_name: lastName.trim(),
+            phone: phone.trim(),
+            address: address.trim(),
+          }),
+        );
+      }
+
+      try {
+        await refetchVerification();
+      } catch {
+        // non-blocking
+      }
+
+      const successMsg = dt("profileSaved");
+      setStatusMessage({ type: "success", text: successMsg });
+      notify(dt("success"), successMsg, () => navigation.goBack());
+    } catch (err) {
+      const msg =
+        err instanceof Error && err.message
+          ? err.message
+          : dt("profileSaveFailed");
+      setStatusMessage({ type: "error", text: msg });
+      notify(dt("error"), msg);
     } finally {
       setLoading(false);
     }
@@ -170,6 +230,24 @@ const UserProfile: React.FC = () => {
             </View>
           </View>
 
+          {statusMessage ? (
+            <View
+              style={[
+                styles.statusBanner,
+                statusMessage.type === "success" ? styles.statusSuccess : styles.statusError,
+              ]}
+            >
+              <Text
+                style={[
+                  styles.statusText,
+                  statusMessage.type === "success" ? styles.statusSuccessText : styles.statusErrorText,
+                ]}
+              >
+                {statusMessage.text}
+              </Text>
+            </View>
+          ) : null}
+
           <View style={styles.avatarContainer}>
             {avatar ? (
               <Image source={{ uri: avatar.uri }} style={styles.avatar} />
@@ -179,10 +257,10 @@ const UserProfile: React.FC = () => {
               </View>
             )}
             <View style={styles.buttonContainer}>
-              <TouchableOpacity onPress={() => handleImagePicker("camera")} style={styles.iconButton}>
+              <TouchableOpacity onPress={() => void handleImagePicker("camera")} style={styles.iconButton}>
                 <MaterialCommunityIcons name="camera" size={24} color="#0171CE" />
               </TouchableOpacity>
-              <TouchableOpacity onPress={() => handleImagePicker("library")} style={styles.iconButton}>
+              <TouchableOpacity onPress={() => void handleImagePicker("library")} style={styles.iconButton}>
                 <MaterialCommunityIcons name="image" size={24} color="#0171CE" />
               </TouchableOpacity>
             </View>
@@ -204,9 +282,19 @@ const UserProfile: React.FC = () => {
           <TextInput value={bank} onChangeText={setBank} style={styles.input} />
 
           <Text style={styles.fieldLabel}>{dt("accountNumber")} *</Text>
-          <TextInput value={accountNumber} onChangeText={setAccountNumber} style={styles.input} keyboardType="number-pad" />
+          <TextInput
+            value={accountNumber}
+            onChangeText={setAccountNumber}
+            style={styles.input}
+            keyboardType="number-pad"
+          />
 
-          <TouchableOpacity onPress={handleSubmit} style={styles.submitButton} disabled={loading}>
+          <TouchableOpacity
+            onPress={() => void handleSubmit()}
+            style={[styles.submitButton, loading ? styles.submitDisabled : null]}
+            disabled={loading}
+            accessibilityRole="button"
+          >
             {loading ? (
               <ActivityIndicator color="#fff" />
             ) : (
@@ -237,6 +325,18 @@ const styles = StyleSheet.create({
   progressLabel: { fontSize: 13, color: "#475569", marginBottom: 6, fontWeight: "600" },
   progressTrack: { height: 8, backgroundColor: "#e2e8f0", borderRadius: 4, overflow: "hidden" },
   progressFill: { height: "100%", backgroundColor: "#0171CE", borderRadius: 4 },
+  statusBanner: {
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    marginBottom: 14,
+    borderWidth: 1,
+  },
+  statusSuccess: { backgroundColor: "#ecfdf5", borderColor: "#a7f3d0" },
+  statusError: { backgroundColor: "#fef2f2", borderColor: "#fecaca" },
+  statusText: { fontSize: 13, fontWeight: "600" },
+  statusSuccessText: { color: "#065f46" },
+  statusErrorText: { color: "#991b1b" },
   avatarContainer: { justifyContent: "center", alignItems: "center", marginBottom: 20 },
   avatar: { width: 100, height: 100, borderRadius: 50 },
   avatarPlaceholder: {
@@ -268,6 +368,7 @@ const styles = StyleSheet.create({
     minHeight: 50,
     marginTop: 16,
   },
+  submitDisabled: { opacity: 0.7 },
   submitButtonText: { color: "white", fontSize: 16, fontWeight: "700" },
 });
 

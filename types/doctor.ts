@@ -52,7 +52,42 @@ export interface DoctorDashboardStats {
   reviewCount: number;
   monthlyEarnings: string;
   currency: string;
+  analyticsDays: number;
+  analytics: DoctorDashboardAnalytics;
 }
+
+export type DoctorChartSeries = {
+  labels: string[];
+  data: number[];
+};
+
+export type DoctorRankedSeries = DoctorChartSeries & {
+  ids?: number[];
+};
+
+export type DoctorMetricComparison = {
+  current: number;
+  previous: number;
+  delta: number;
+  percentChange: number | null;
+};
+
+export type DoctorDashboardAnalytics = {
+  days: number;
+  periodStart?: string;
+  periodEnd?: string;
+  previousPeriodStart?: string;
+  previousPeriodEnd?: string;
+  appointmentsByDay: DoctorChartSeries;
+  appointmentsByStatus: DoctorChartSeries;
+  appointmentTypeBreakdown: DoctorChartSeries;
+  earningsByDay: DoctorChartSeries;
+  topServices: DoctorRankedSeries;
+  comparison: {
+    appointments: DoctorMetricComparison;
+    earnings: DoctorMetricComparison;
+  };
+};
 
 export interface DoctorService {
   id: number;

@@ -2,6 +2,7 @@ import { combineReducers, configureStore } from "@reduxjs/toolkit";
 import { TypedUseSelectorHook, useDispatch, useSelector } from "react-redux";
 import authReducer from "./slices/authSlice";
 import { doctorApi } from "./slices/doctorApi";
+import { propertyApi } from "./slices/propertyApi";
 import { driverApi } from "./slices/driverApi";
 import { driverDashboardApi } from "./slices/driverDashboardApi";
 import { notificationApi } from "./slices/notificationApi";
@@ -21,6 +22,7 @@ const rootPersistConfig = {
 const rootReducer = combineReducers({
   auth: authReducer,
   [doctorApi.reducerPath]: doctorApi.reducer,
+  [propertyApi.reducerPath]: propertyApi.reducer,
   [driverApi.reducerPath]: driverApi.reducer,
   [driverDashboardApi.reducerPath]: driverDashboardApi.reducer,
   [notificationApi.reducerPath]: notificationApi.reducer,
@@ -39,6 +41,7 @@ export const store = configureStore({
       serializableCheck: false,
     })
       .concat(doctorApi.middleware)
+      .concat(propertyApi.middleware)
       .concat(driverApi.middleware)
       .concat(driverDashboardApi.middleware)
       .concat(notificationApi.middleware)

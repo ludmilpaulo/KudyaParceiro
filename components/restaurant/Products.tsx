@@ -71,7 +71,7 @@ const Products: React.FC = () => {
     formData.append('name', data.name);
     formData.append('short_description', data.short_description);
     if (image) {
-      appendFormDataFile(formData, 'image', {
+      await appendFormDataFile(formData, 'image', {
         uri: image,
         name: 'product_image.jpg',
         type: 'image/jpeg',
@@ -105,7 +105,7 @@ const Products: React.FC = () => {
     formData.append('name', data.name);
     formData.append('short_description', data.short_description);
     if (image) {
-      appendFormDataFile(formData, 'image', {
+      await appendFormDataFile(formData, 'image', {
         uri: image,
         name: 'product_image.jpg',
         type: 'image/jpeg',

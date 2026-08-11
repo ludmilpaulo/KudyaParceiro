@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import type { DrawerNavigationProp } from "@react-navigation/drawer";
@@ -8,13 +8,16 @@ import {
 } from "../../redux/slices/doctorApi";
 import { useGetNotificationsQuery, useGetUnreadNotificationCountQuery } from "../../redux/slices/notificationApi";
 import { useDoctorTranslation } from "../../hooks/useDoctorTranslation";
+import DoctorAnalyticsCharts from "../../components/doctor/DoctorAnalyticsCharts";
+import type { AnalyticsDays } from "../../components/analytics/AnalyticsDaysFilter";
 
 type DrawerNav = DrawerNavigationProp<Record<string, undefined>>;
 
 export default function DoctorDashboardScreen() {
   const { dt } = useDoctorTranslation();
   const navigation = useNavigation<DrawerNav>();
-  const { data: stats, isLoading } = useGetPartnerDoctorDashboardQuery(undefined, { pollingInterval: 45000 });
+  const [days, setDays] = useState<AnalyticsDays>(7);
+  const { data: stats, isLoading } = useGetPartnerDoctorDashboardQuery({ days }, { pollingInterval: 45000 });
   const { data: appointments = [] } = useGetDoctorAppointmentsQuery({ filter: "upcoming" });
   const { data: unread } = useGetUnreadNotificationCountQuery(undefined, { pollingInterval: 45000 });
   const { data: notifications = [] } = useGetNotificationsQuery(undefined, { pollingInterval: 45000 });
@@ -83,6 +86,8 @@ export default function DoctorDashboardScreen() {
           </View>
         ))}
       </View>
+
+      <DoctorAnalyticsCharts analytics={stats.analytics} days={days} onDaysChange={setDays} />
 
       <Text style={styles.sectionTitle}>{dt("recentActivity")}</Text>
       {appointments.slice(0, 5).map((item) => (

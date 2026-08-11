@@ -95,7 +95,9 @@ export function createApiBaseQuery(apiPath: string): BaseQueryFn<string | FetchA
       const isMultipartUpload =
         endpoint === "uploadDoctorDocument" ||
         endpoint === "uploadDriverPersonalDocument" ||
-        endpoint === "uploadDriverVehicleDocument";
+        endpoint === "uploadDriverVehicleDocument" ||
+        endpoint === "createPropertyListing" ||
+        endpoint === "updatePropertyListing";
       if (!isMultipartUpload) {
         headers.set("Content-Type", "application/json");
       }

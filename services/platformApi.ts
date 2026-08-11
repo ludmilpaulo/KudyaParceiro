@@ -1,6 +1,6 @@
 import { apiFetch, readJsonResponse } from '../utils/apiClient';
 
-export type ClientPlatform = 'web' | 'mobile';
+export type ClientPlatform = 'web' | 'mobile' | 'parceiro' | 'customer';
 
 export interface BusinessCategory {
   id: number;
@@ -62,9 +62,10 @@ function normalizeCategory(raw: RawBusinessCategory): BusinessCategory {
 
 export async function fetchBusinessCategories(
   lang = 'en',
-  platform: ClientPlatform = 'mobile',
+  platform: ClientPlatform = 'parceiro',
 ): Promise<BusinessCategory[]> {
-  const params = new URLSearchParams({ platform });
+  const normalized = platform === 'customer' ? 'mobile' : platform;
+  const params = new URLSearchParams({ platform: normalized });
   const response = await apiFetch(`/api/platform/business-categories/?${params.toString()}`, {
     headers: {
       Accept: 'application/json',

@@ -6,8 +6,10 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import tailwind from 'twrnc';
 import { selectUser } from '../../redux/slices/authSlice';
 import { fetchPartnerReport } from '../../features/partner/api/partnerReportsApi';
+import AnalyticsDaysFilter from '../analytics/AnalyticsDaysFilter';
 
 interface ReportData {
+  labels?: string[];
   revenue: number[];
   orders: number[];
   meals?: { labels: string[]; data: number[] };
@@ -32,7 +34,8 @@ const Report: React.FC = () => {
     total_restaurant_amount: 0,
   });
   const [loading, setLoading] = useState(true);
-  const [timeframe, setTimeframe] = useState('week'); // default to week
+  const [days, setDays] = useState<7 | 30 | 90>(7);
+  const [timeframe, setTimeframe] = useState('week'); // legacy custom mode
   const [startDate, setStartDate] = useState(new Date());
   const [endDate, setEndDate] = useState(new Date());
   const [showStartPicker, setShowStartPicker] = useState(false);
@@ -49,11 +52,16 @@ const Report: React.FC = () => {
       try {
         const naiveStartDate = toNaiveISOString(startDate);
         const naiveEndDate = toNaiveISOString(endDate);
-        const responseData = await fetchPartnerReport({
-          timeframe,
-          start_date: naiveStartDate,
-          end_date: naiveEndDate,
-        });
+        const useRolling = timeframe === 'week';
+        const responseData = await fetchPartnerReport(
+          useRolling
+            ? { days }
+            : {
+                timeframe,
+                start_date: naiveStartDate,
+                end_date: naiveEndDate,
+              },
+        );
         console.log('Response data:', responseData);
 
         if ((responseData as { message?: string }).message) {
@@ -82,7 +90,7 @@ const Report: React.FC = () => {
       }
     };
     fetchData();
-  }, [user, timeframe, startDate, endDate]);
+  }, [user, timeframe, startDate, endDate, days]);
 
   if (loading) {
     return (
@@ -130,9 +138,9 @@ const Report: React.FC = () => {
         );
       case 'week':
         return (
-          <BarChart
+          <LineChart
             data={{
-              labels: ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb','Dom'],
+              labels: data.labels?.map((label) => label.slice(5)) ?? ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb','Dom'],
               datasets: [{ data: data.revenue }],
             }}
             width={screenWidth - 48}
@@ -196,6 +204,14 @@ const Report: React.FC = () => {
   return (
     <ScrollView style={tailwind`flex-1 bg-white p-4`}>
       <Text style={tailwind`text-3xl font-bold text-center mb-8`}>Relatório da Loja</Text>
+
+      {timeframe === 'week' && (
+        <AnalyticsDaysFilter
+          value={days}
+          onChange={setDays}
+          labelFor={(value) => (value === 30 ? '30 dias' : value === 90 ? '90 dias' : '7 dias')}
+        />
+      )}
       
       <View style={tailwind`flex flex-row justify-around mb-8`}>
         <TouchableOpacity onPress={() => setTimeframe('day')} style={[styles.filterButton, timeframe === 'day' && styles.activeFilter]}>

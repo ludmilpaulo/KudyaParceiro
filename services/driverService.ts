@@ -49,24 +49,43 @@ export const updateDriverLocation = async (
   return ok ? { status: 'location updated', latitude, longitude } : null;
 };
 
-export const updateDriverProfile = async (formData: FormData) => {
-  try {
-    const response = await fetch(`${baseAPI}/driver/profile/update/`, {
-      method: 'POST',
-      headers: {
-        Accept: 'application/json',
-      },
-      body: formData,
-    });
-
-    if (!response.ok) {
-      throw new Error('Erro ao atualizar perfil');
-    }
-
-    return await response.json();
-  } catch (error) {
-    throw new Error('Falha ao atualizar perfil do motorista: ' + (error instanceof Error ? error.message : 'erro desconhecido'));
+export const updateDriverProfile = async (
+  formData: FormData,
+  options?: { accessToken?: string },
+) => {
+  const token = (options?.accessToken || "").trim();
+  const headers: Record<string, string> = {
+    Accept: "application/json",
+  };
+  if (token) {
+    headers.Authorization = `Bearer ${token}`;
   }
+
+  const response = await fetch(`${baseAPI}/driver/profile/update/`, {
+    method: "POST",
+    headers,
+    body: formData,
+  });
+
+  let payload: unknown = null;
+  try {
+    payload = await response.json();
+  } catch {
+    payload = null;
+  }
+
+  if (!response.ok) {
+    const detail =
+      payload && typeof payload === "object" && "detail" in payload
+        ? String((payload as { detail: unknown }).detail)
+        : `HTTP ${response.status}`;
+    throw new Error(detail || "Failed to update profile");
+  }
+
+  return (payload && typeof payload === "object" ? payload : {}) as {
+    status?: string;
+    detail?: string;
+  };
 };
 
 export const fetchOngoingOrder = async (accessToken: string) => {

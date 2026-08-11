@@ -59,7 +59,7 @@ const ProfileScreen = () => {
       formData.append('phone', profileData.phone);
       formData.append('address', profileData.address);
       if (profileData.avatar) {
-        appendFormDataFile(formData, 'avatar', {
+        await appendFormDataFile(formData, 'avatar', {
           uri: profileData.avatar,
           name: 'avatar.jpg',
           type: 'image/jpeg',

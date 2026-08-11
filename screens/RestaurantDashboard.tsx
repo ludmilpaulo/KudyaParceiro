@@ -11,6 +11,7 @@ import Screen from '../components/Screen';
 import { LinearGradient } from 'expo-linear-gradient';
 import { HelpCircle } from 'react-native-feather';
 import HelpGuideModal from '../components/HelpGuideModal';
+import RestaurantMiniAnalytics from '../components/restaurant/RestaurantMiniAnalytics';
 import { analytics } from '../utils/mixpanel';
 
 const RestaurantDashboard: React.FC = () => {
@@ -141,7 +142,7 @@ const RestaurantDashboard: React.FC = () => {
                 <HelpCircle width={28} height={28} color="#FFF" />
               </TouchableOpacity>
             </View>
-            {/* Add additional content here */}
+            <RestaurantMiniAnalytics />
           </View>
         )}
       </Screen>

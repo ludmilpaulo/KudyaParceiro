@@ -8,9 +8,14 @@ import type { PartnerType } from '../types/partner';
 import RestaurantDrawer from './RestaurantDrawer';
 import CategoryPartnerDrawer from './CategoryPartnerDrawer';
 import DoctorDrawer from './DoctorDrawer';
+import PropertyDrawer from './PropertyDrawer';
 
 function resolveDrawer(partnerType: PartnerType | null, categorySlug: string) {
-  if (partnerType === 'doctor') {
+  // Category slug wins for property so partners always get the listings dashboard.
+  if (categorySlug === 'property' || categorySlug === 'stay' || partnerType === 'property') {
+    return <PropertyDrawer />;
+  }
+  if (partnerType === 'doctor' || categorySlug === 'doctor') {
     return <DoctorDrawer />;
   }
   if (partnerType === 'restaurant' || partnerType === 'shop') {
@@ -18,7 +23,6 @@ function resolveDrawer(partnerType: PartnerType | null, categorySlug: string) {
   }
   if (
     partnerType === 'driver' ||
-    partnerType === 'property' ||
     partnerType === 'service_provider' ||
     partnerType === 'rental_partner'
   ) {
