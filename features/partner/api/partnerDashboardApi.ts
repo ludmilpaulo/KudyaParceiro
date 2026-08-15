@@ -79,8 +79,11 @@ export async function fetchPartnerOrders() {
   return partnerFetch('/orders/');
 }
 
-export async function advancePartnerOrderStatus(orderId: number) {
-  return partnerFetch(`/orders/${orderId}/status/`, { method: 'PATCH' });
+export async function advancePartnerOrderStatus(orderId: number, nextStatus?: number | string) {
+  return partnerFetch(`/orders/${orderId}/status/`, {
+    method: 'PATCH',
+    body: JSON.stringify(nextStatus === undefined ? {} : { status: nextStatus }),
+  });
 }
 
 export async function fetchPartnerProductCategories() {
@@ -105,4 +108,25 @@ export async function updatePartnerLocation(location: string) {
   });
 }
 
-export { multipartConfig };
+export async function fetchPartnerEarnings() {
+  const token = await readAuthToken();
+  const headers = new Headers();
+  headers.set('Accept-Language', getDeviceLanguage());
+  if (token) headers.set('Authorization', `Bearer ${token}`);
+  const response = await fetch(`${getBaseApiUrl()}/api/wallet/earnings/`, { headers });
+  if (!response.ok) {
+    throw new Error(`Request failed (${response.status})`);
+  }
+  return response.json() as Promise<{
+    available_balance: string;
+    currency: string;
+    transactions: Array<{
+      id: number;
+      amount: string;
+      currency: string;
+      description: string;
+      transaction_type: string;
+      created_at: string;
+    }>;
+  }>;
+}

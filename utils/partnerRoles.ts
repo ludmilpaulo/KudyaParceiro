@@ -28,6 +28,8 @@ export const PARTNER_BUSINESS_ROLES = new Set([
   'rental_partner',
   'courier',
   'business_admin',
+  'business_employee',
+  'clinic_admin',
   'landlord',
 ]);
 

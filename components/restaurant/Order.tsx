@@ -28,7 +28,7 @@ const Orders: React.FC = () => {
     }
   }, [user?.user_id]);
 
-  const handleStatus = async (orderId: number) => {
+  const handleStatus = async (orderId: number, nextStatus: number, label: string) => {
     const user_id = user?.user_id;
     if (!user_id) {
       Alert.alert("Erro", "ID do usuário não fornecido.");
@@ -37,7 +37,7 @@ const Orders: React.FC = () => {
 
     Alert.alert(
       "Confirmar",
-      "Tem certeza de que deseja chamar o motorista?",
+      label,
       [
         {
           text: "Cancelar",
@@ -47,9 +47,8 @@ const Orders: React.FC = () => {
           text: "OK",
           onPress: async () => {
             try {
-              await updateOrderStatus(user_id, orderId);
-              Alert.alert("Sucesso", "Motorista chamado com sucesso!");
-              fetchOrderData(); // Opcionalmente, você pode atualizar os pedidos
+              await updateOrderStatus(user_id, orderId, nextStatus);
+              fetchOrderData();
             } catch (error) {
               console.error("Erro ao atualizar o status do pedido:", error);
               Alert.alert("Erro", "Falha ao atualizar o status do pedido. Por favor, tente novamente.");
@@ -62,8 +61,9 @@ const Orders: React.FC = () => {
 
   useEffect(() => {
     const fetchOrdersPeriodically = setInterval(async () => {
+      if (!user?.user_id) return;
       try {
-        const data = await fetchOrders(user?.user_id);
+        const data = await fetchOrders(user.user_id);
         if (JSON.stringify(data) !== JSON.stringify(orders)) {
           setOrders(data);
           Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
@@ -132,12 +132,20 @@ const Orders: React.FC = () => {
                   </TouchableOpacity>
                 )}
                 {order.status_code === 1 && (
-                  <TouchableOpacity
-                    onPress={() => handleStatus(order.id)}
-                    style={styles.actionButton}
-                  >
-                    <Text style={styles.actionButtonText}>Chamar Motorista</Text>
-                  </TouchableOpacity>
+                  <View>
+                    <TouchableOpacity
+                      onPress={() => handleStatus(order.id, 2, 'Marcar como pronto e chamar o motorista?')}
+                      style={styles.actionButton}
+                    >
+                      <Text style={styles.actionButtonText}>Pronto / Chamar motorista</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      onPress={() => handleStatus(order.id, 5, 'Rejeitar este pedido?')}
+                      style={[styles.actionButton, { backgroundColor: '#dc2626', marginTop: 8 }]}
+                    >
+                      <Text style={styles.actionButtonText}>Rejeitar</Text>
+                    </TouchableOpacity>
+                  </View>
                 )}
               </View>
             </View>

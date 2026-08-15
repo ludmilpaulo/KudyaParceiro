@@ -1,46 +1,60 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, ScrollView, ActivityIndicator } from 'react-native';
+import { View, Text, ScrollView, StyleSheet } from 'react-native';
 import { useTranslation } from '../../hooks/useTranslation';
-import { fetchMyBusinesses, type PartnerBusiness } from '../../features/business/api';
+import { theme } from '../../configs/theme';
+import { fetchMyBusinesses, type LinkedBusiness } from '../../services/categoryPartnerApi';
+import { fetchPartnerEarnings } from '../../features/partner/api/partnerDashboardApi';
 
 export default function BusinessPartnerDashboard() {
   const { t } = useTranslation();
-  const [rows, setRows] = useState<PartnerBusiness[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [businesses, setBusinesses] = useState<LinkedBusiness[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [earnings, setEarnings] = useState<{ available_balance: string; currency: string } | null>(null);
 
   useEffect(() => {
     fetchMyBusinesses()
-      .then(setRows)
-      .catch(() => setError(t('unableToLoadData', 'Unable to load data')))
-      .finally(() => setLoading(false));
+      .then(setBusinesses)
+      .catch(() => setError(t('loadFailed', 'Failed to load businesses.')));
+    fetchPartnerEarnings()
+      .then((data) => setEarnings({ available_balance: data.available_balance, currency: data.currency }))
+      .catch(() => undefined);
   }, [t]);
 
-  if (loading) return <ActivityIndicator style={{ marginTop: 40 }} />;
-
   return (
-    <ScrollView contentContainerStyle={{ padding: 16 }}>
-      <Text style={{ fontSize: 22, fontWeight: '800' }}>{t('business', 'Business')}</Text>
-      <Text style={{ marginTop: 8, color: '#475569' }}>
-        {t(
-          'businessMembershipHint',
-          'Memberships linked to this account. Invoicing and spend controls are not available yet.',
-        )}
+    <ScrollView style={styles.scroll} contentContainerStyle={styles.content}>
+      <Text style={styles.title}>{t('business', 'Business')}</Text>
+      <Text style={styles.subtitle}>
+        {t('businessMembershipHint', 'Linked business memberships from the Kudya API. Invoicing is not part of this workspace.')}
       </Text>
-      {error ? <Text style={{ marginTop: 12, color: '#dc2626' }}>{error}</Text> : null}
-      {rows.length === 0 && !error ? (
-        <Text style={{ marginTop: 16, color: '#64748b' }}>
-          {t('noBusinessAccounts', 'No business accounts are linked to this user yet.')}
-        </Text>
-      ) : null}
-      {rows.map((row) => (
-        <View key={row.id} style={{ marginTop: 12, backgroundColor: '#fff', padding: 14, borderRadius: 12 }}>
-          <Text style={{ fontWeight: '700' }}>{row.name}</Text>
-          <Text style={{ color: '#64748b', marginTop: 4 }}>
-            {row.category_slug} · {row.status}
+      {error ? <Text style={styles.error}>{error}</Text> : null}
+      {earnings ? (
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>{t('partnerEarnings', 'Earnings')}</Text>
+          <Text style={styles.meta}>
+            {earnings.currency} {earnings.available_balance}
           </Text>
+        </View>
+      ) : null}
+      {businesses.length === 0 && !error ? (
+        <Text style={styles.meta}>{t('noBusinesses', 'No linked businesses yet.')}</Text>
+      ) : null}
+      {businesses.map((business) => (
+        <View key={business.id} style={styles.card}>
+          <Text style={styles.cardTitle}>{business.name || business.legal_name || `#${business.id}`}</Text>
+          <Text style={styles.meta}>{business.status || t('linked', 'Linked')}</Text>
         </View>
       ))}
     </ScrollView>
   );
 }
+
+const styles = StyleSheet.create({
+  scroll: { flex: 1, backgroundColor: theme.colors.background },
+  content: { padding: 16, paddingBottom: 40 },
+  title: { fontSize: 22, fontWeight: '800', color: theme.colors.text, marginBottom: 8 },
+  subtitle: { color: theme.colors.textSecondary, marginBottom: 16, lineHeight: 20 },
+  error: { color: '#b91c1c', marginBottom: 8 },
+  card: { backgroundColor: theme.colors.surface, borderRadius: 12, padding: 12, marginBottom: 8, borderWidth: 1, borderColor: theme.colors.border },
+  cardTitle: { fontWeight: '700', color: theme.colors.text },
+  meta: { color: theme.colors.textSecondary, marginTop: 4 },
+});
