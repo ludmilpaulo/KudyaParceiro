@@ -120,6 +120,7 @@ export default function DriverDashboardScreen() {
           />
           <DriverStatsGrid
             summary={data.summary}
+            onWalletPress={() => navigation.navigate("Account")}
             onOrdersPress={showFood ? () => navigation.navigate("FoodDeliveries") : undefined}
           />
           <QuickActionsSection

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, ActivityIndicator, Alert, Platform } from 'react-native';
 import { AntDesign, FontAwesome5 } from '@expo/vector-icons';
+import * as AppleAuthentication from 'expo-apple-authentication';
 import tw from 'twrnc';
 import {
   useGoogleAuth,
@@ -9,6 +10,7 @@ import {
   completeFacebookAuth,
   signInWithInstagram,
   signInWithTikTok,
+  signInWithApple,
   isSocialLoginConfigured,
   SocialAuthResult,
   SocialProvider,
@@ -28,11 +30,26 @@ const PROVIDERS: { id: SocialProvider; labelKey: TranslationKey; icon: React.Rea
   { id: 'tiktok', labelKey: 'continueTiktok', icon: <FontAwesome5 name="tiktok" size={18} color="#000" /> },
 ];
 
+function providerErrorKey(provider: SocialProvider): TranslationKey {
+  if (provider === 'google') return 'googleSignInFailed';
+  if (provider === 'facebook') return 'facebookSignInFailed';
+  if (provider === 'tiktok') return 'tiktokSignInFailed';
+  if (provider === 'apple') return 'appleSignInFailed';
+  return 'loginFailed';
+}
+
 export default function SocialLoginButtons({ onSuccess, disabled }: Props) {
   const { t } = useTranslation();
   const [loadingProvider, setLoadingProvider] = useState<SocialProvider | null>(null);
+  const [appleAvailable, setAppleAvailable] = useState(false);
   const [googleRequest, googleResponse, promptGoogle] = useGoogleAuth();
   const [fbRequest, fbResponse, promptFacebook] = useFacebookAuth();
+
+  useEffect(() => {
+    if (Platform.OS === 'ios') {
+      AppleAuthentication.isAvailableAsync().then(setAppleAvailable);
+    }
+  }, []);
 
   useEffect(() => {
     if (googleResponse?.type === 'success') {
@@ -41,13 +58,18 @@ export default function SocialLoginButtons({ onSuccess, disabled }: Props) {
           setLoadingProvider('google');
           onSuccess(await completeGoogleAuth(googleResponse.authentication));
         } catch (e: unknown) {
-          Alert.alert(t('error'), e instanceof Error ? e.message : t('loginFailed'));
+          const message = e instanceof Error ? e.message : '';
+          if (!/cancel/i.test(message)) {
+            Alert.alert(t('error'), t('googleSignInFailed'));
+          }
         } finally {
           setLoadingProvider(null);
         }
       })();
+    } else if (googleResponse?.type === 'cancel' || googleResponse?.type === 'dismiss') {
+      setLoadingProvider(null);
     }
-  }, [googleResponse, onSuccess]);
+  }, [googleResponse, onSuccess, t]);
 
   useEffect(() => {
     if (fbResponse?.type === 'success') {
@@ -56,13 +78,32 @@ export default function SocialLoginButtons({ onSuccess, disabled }: Props) {
           setLoadingProvider('facebook');
           onSuccess(await completeFacebookAuth(fbResponse.authentication));
         } catch (e: unknown) {
-          Alert.alert(t('error'), e instanceof Error ? e.message : t('loginFailed'));
+          const message = e instanceof Error ? e.message : '';
+          if (!/cancel/i.test(message)) {
+            Alert.alert(t('error'), t('facebookSignInFailed'));
+          }
         } finally {
           setLoadingProvider(null);
         }
       })();
+    } else if (fbResponse?.type === 'cancel' || fbResponse?.type === 'dismiss') {
+      setLoadingProvider(null);
     }
-  }, [fbResponse, onSuccess]);
+  }, [fbResponse, onSuccess, t]);
+
+  const handleApplePress = async () => {
+    try {
+      setLoadingProvider('apple');
+      onSuccess(await signInWithApple());
+    } catch (e: unknown) {
+      const message = e instanceof Error ? e.message : '';
+      if (!/cancel/i.test(message)) {
+        Alert.alert(t('error'), t('appleSignInFailed'));
+      }
+    } finally {
+      setLoadingProvider(null);
+    }
+  };
 
   const handlePress = async (provider: SocialProvider) => {
     if (!isSocialLoginConfigured(provider)) {
@@ -72,11 +113,17 @@ export default function SocialLoginButtons({ onSuccess, disabled }: Props) {
     try {
       setLoadingProvider(provider);
       if (provider === 'google') {
-        await promptGoogle();
+        const result = await promptGoogle();
+        if (!result || result.type !== 'success') {
+          setLoadingProvider(null);
+        }
         return;
       }
       if (provider === 'facebook') {
-        await promptFacebook();
+        const result = await promptFacebook();
+        if (!result || result.type !== 'success') {
+          setLoadingProvider(null);
+        }
         return;
       }
       if (provider === 'instagram') {
@@ -90,29 +137,43 @@ export default function SocialLoginButtons({ onSuccess, disabled }: Props) {
       }
     } catch (e: unknown) {
       setLoadingProvider(null);
-      Alert.alert(t('error'), e instanceof Error ? e.message : t('loginFailed'));
+      const message = e instanceof Error ? e.message : '';
+      if (/cancel/i.test(message)) return;
+      Alert.alert(t('error'), t(providerErrorKey(provider)));
     }
   };
-
-  const anyConfigured = PROVIDERS.some((p) => isSocialLoginConfigured(p.id));
 
   return (
     <View style={tw`mt-4`}>
       <Text style={tw`text-center text-gray-500 mb-3`}>{t('orContinueWith')}</Text>
-      {!anyConfigured ? (
-        <Text style={tw`text-center text-xs text-gray-400 mb-2`}>
-          {t('socialLoginRequiresOAuth')}
-        </Text>
+      {appleAvailable ? (
+        loadingProvider === 'apple' ? (
+          <View style={tw`items-center py-3 mb-2`}>
+            <ActivityIndicator size="small" color="#3B82F6" />
+          </View>
+        ) : (
+          <AppleAuthentication.AppleAuthenticationButton
+            buttonType={AppleAuthentication.AppleAuthenticationButtonType.CONTINUE}
+            buttonStyle={AppleAuthentication.AppleAuthenticationButtonStyle.BLACK}
+            cornerRadius={22}
+            style={{ width: '100%', height: 44, marginBottom: 8 }}
+            onPress={() => void handleApplePress()}
+          />
+        )
       ) : null}
       {PROVIDERS.map((p) => {
+        const configured = isSocialLoginConfigured(p.id);
         const busy = loadingProvider === p.id || disabled;
-        const ready = p.id === 'google' ? !!googleRequest : p.id === 'facebook' ? !!fbRequest : true;
+        const ready =
+          p.id === 'google' ? !!googleRequest : p.id === 'facebook' ? !!fbRequest : configured;
         return (
           <TouchableOpacity
             key={p.id}
-            onPress={() => handlePress(p.id)}
-            disabled={busy || !ready}
-            style={tw`flex-row items-center justify-center border border-gray-200 rounded-full py-3 mb-2 bg-white`}
+            onPress={() => void handlePress(p.id)}
+            disabled={busy || !ready || !configured}
+            style={tw`flex-row items-center justify-center border border-gray-200 rounded-full py-3 mb-2 ${
+              configured ? 'bg-white' : 'bg-gray-50 opacity-60'
+            }`}
           >
             {busy ? (
               <ActivityIndicator size="small" color="#3B82F6" />

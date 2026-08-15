@@ -20,7 +20,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MotiView } from 'moti';
 import { loginUserService } from '../services/authService';
-import { loginUser, logoutUser } from '../redux/slices/authSlice';
+import { loginUser } from '../redux/slices/authSlice';
 import ForgotPasswordModal from '../components/ForgotPasswordModal';
 import SocialLoginButtons from '../components/SocialLoginButtons';
 import type { SocialAuthResult } from '../services/socialAuth';
@@ -66,10 +66,9 @@ const LoginScreenUser = () => {
     user?: Record<string, unknown>;
   }) => {
     if (!canUsePartnerApp(response as Parameters<typeof canUsePartnerApp>[0]) && !canUseRiderApp(response as Parameters<typeof canUseRiderApp>[0])) {
-      const msg = t('unsupportedAccountMessage');
-      setLoginError(msg);
-      showMessage(t('unsupportedAccount'), msg);
-      dispatch(logoutUser());
+      setLoginError(null);
+      showMessage(t('success'), t('completePartnerProfile'));
+      navigation.navigate('Join');
       return;
     }
     setLoginError(null);

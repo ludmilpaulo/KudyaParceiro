@@ -18,12 +18,10 @@ import { calculateDistance } from "../utils/distance";
 import { analytics } from "../utils/mixpanel";
 import {
   configureNotificationHandler,
-  registerForPushNotificationsAsync,
   scheduleLocalNotification,
 } from "../utils/localNotifications";
 import FulfillmentPanel from "../features/fulfillment/components/FulfillmentPanel";
-
-const PUSH_PROJECT_ID = 'f848ca4d-cf74-4e6b-b42d-107d533158b8';
+import { registerPartnerPushToken } from "../utils/registerPartnerPush";
 
 const EntregadorDashboard = () => {
   const { showFood, modes } = useDriverCapabilities();
@@ -195,10 +193,7 @@ const EntregadorDashboard = () => {
 
   const registerPushNotifications = async () => {
     await configureNotificationHandler();
-    const token = await registerForPushNotificationsAsync(PUSH_PROJECT_ID);
-    if (token) {
-      console.log(token);
-    }
+    await registerPartnerPushToken();
   };
 
   useEffect(() => {

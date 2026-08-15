@@ -1,5 +1,5 @@
-import React, { useMemo } from 'react';
-import { View, Text, ScrollView, StyleSheet } from 'react-native';
+import React from 'react';
+import { View, Text, ScrollView, StyleSheet, Linking, TouchableOpacity } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Feather } from '@expo/vector-icons';
 import { useSelector } from 'react-redux';
@@ -7,27 +7,12 @@ import { selectUser } from '../../redux/slices/authSlice';
 import { useTranslation } from '../../hooks/useTranslation';
 import { theme } from '../../configs/theme';
 import { getPartnerCategorySlug } from '../../utils/partnerRoles';
+import ServicesPartnerDashboard from './ServicesPartnerDashboard';
+import RentalPartnerDashboard from './RentalPartnerDashboard';
+import BusinessPartnerDashboard from './BusinessPartnerDashboard';
 
-const FEATURE_ICONS: Record<string, keyof typeof Feather.glyphMap> = {
-  menu_management: 'book-open',
-  product_management: 'package',
-  orders: 'shopping-bag',
-  bookings: 'calendar',
-  property_listings: 'home',
-  room_listings: 'home',
-  appointments: 'clock',
-  revenue: 'trending-up',
-  reviews: 'star',
-  business_profile: 'user',
-  stock_management: 'layers',
-  delivery_settings: 'truck',
-  promotions: 'tag',
-  enquiries: 'mail',
-  agents: 'users',
-  availability_calendar: 'calendar',
-  pricing: 'dollar-sign',
-  guests: 'users',
-};
+const PRIVACY_URL = 'https://sd-kudya.vercel.app/PrivacyPolicy';
+const TERMS_URL = 'https://sd-kudya.vercel.app/TermsOfService';
 
 type Props = {
   categorySlug: string;
@@ -40,53 +25,78 @@ export default function CategoryPartnerDashboard({
   categorySlug,
   categoryName,
   categoryColor = theme.colors.primary,
-  featureKeys = [],
 }: Props) {
   const { t } = useTranslation();
   const user = useSelector(selectUser);
-  const slug = getPartnerCategorySlug((user || {}) as Parameters<typeof getPartnerCategorySlug>[0]) || categorySlug;
+  const slug =
+    getPartnerCategorySlug((user || {}) as Parameters<typeof getPartnerCategorySlug>[0]) ||
+    categorySlug;
+
+  if (slug === 'services' || slug === 'service') {
+    return <ServicesPartnerDashboard />;
+  }
+  if (slug === 'car_rental') {
+    return <RentalPartnerDashboard />;
+  }
+  if (slug === 'business' || slug === 'business_admin') {
+    return <BusinessPartnerDashboard />;
+  }
+  if (slug === 'courier') {
+    return (
+      <ScrollView style={styles.scroll} contentContainerStyle={styles.content}>
+        <LinearGradient colors={[categoryColor, theme.colors.primaryDark]} style={styles.hero}>
+          <Text style={styles.heroBadge}>{categoryName || slug}</Text>
+          <Text style={styles.heroTitle}>{t('sendPackage', 'Send Package')}</Text>
+          <Text style={styles.heroSubtitle}>
+            {t(
+              'courierPartnerHint',
+              'Parcel jobs are handled in the driver shell. Go online with GPS to accept deliveries — there is no separate courier-company dashboard.',
+            )}
+          </Text>
+        </LinearGradient>
+      </ScrollView>
+    );
+  }
   const businessName =
-    (user as { business_profile?: { businessName?: string }; username?: string } | null)?.business_profile
-      ?.businessName ||
+    (user as { business_profile?: { businessName?: string }; username?: string } | null)
+      ?.business_profile?.businessName ||
     (user as { username?: string } | null)?.username ||
     t('partnerAppName');
 
-  const features = useMemo(() => {
-    if (featureKeys.length > 0) return featureKeys;
-    return ['orders', 'bookings', 'revenue', 'business_profile'];
-  }, [featureKeys]);
-
   return (
     <ScrollView style={styles.scroll} contentContainerStyle={styles.content}>
-      <LinearGradient
-        colors={[categoryColor, theme.colors.primaryDark]}
-        style={styles.hero}
-      >
+      <LinearGradient colors={[categoryColor, theme.colors.primaryDark]} style={styles.hero}>
         <Text style={styles.heroBadge}>{categoryName || slug}</Text>
         <Text style={styles.heroTitle}>{businessName}</Text>
-        <Text style={styles.heroSubtitle}>{t('categoryDashboardSubtitle')}</Text>
+        <Text style={styles.heroSubtitle}>
+          {t(
+            'categoryComingSoonSubtitle',
+            'Partner tools for this category are coming soon. Your account is saved and linked.',
+          )}
+        </Text>
       </LinearGradient>
 
-      <Text style={styles.sectionTitle}>{t('categoryDashboardFeatures')}</Text>
-      <View style={styles.grid}>
-        {features.map((key) => (
-          <View key={key} style={styles.featureTile}>
-            <View style={[styles.featureIcon, { backgroundColor: `${categoryColor}18` }]}>
-              <Feather
-                name={FEATURE_ICONS[key] || 'grid'}
-                size={20}
-                color={categoryColor}
-              />
-            </View>
-            <Text style={styles.featureLabel}>{t(`feature_${key}` as never, key.replace(/_/g, ' '))}</Text>
-          </View>
-        ))}
+      <View style={styles.comingSoonCard}>
+        <Feather name="clock" size={28} color={categoryColor} />
+        <Text style={styles.comingSoonTitle}>
+          {t('comingSoon', 'Coming soon')}
+        </Text>
+        <Text style={styles.comingSoonBody}>
+          {t(
+            'categoryDashboardNote',
+            'Full module features are rolling out per category. Restaurant, grocery, doctor, property, and driver tools are available today for those partner types.',
+          )}
+        </Text>
       </View>
 
-      <View style={styles.noteCard}>
-        <Feather name="info" size={18} color={theme.colors.primary} />
-        <Text style={styles.noteText}>{t('categoryDashboardNote')}</Text>
-      </View>
+      <TouchableOpacity style={styles.linkRow} onPress={() => void Linking.openURL(PRIVACY_URL)}>
+        <Feather name="shield" size={18} color={theme.colors.primary} />
+        <Text style={styles.linkText}>{t('privacyPolicy', 'Privacy Policy')}</Text>
+      </TouchableOpacity>
+      <TouchableOpacity style={styles.linkRow} onPress={() => void Linking.openURL(TERMS_URL)}>
+        <Feather name="file-text" size={18} color={theme.colors.primary} />
+        <Text style={styles.linkText}>{t('termsOfService', 'Terms of Service')}</Text>
+      </TouchableOpacity>
     </ScrollView>
   );
 }
@@ -123,54 +133,42 @@ const styles = StyleSheet.create({
     fontSize: 14,
     lineHeight: 20,
   },
-  sectionTitle: {
+  comingSoonCard: {
+    margin: theme.spacing.lg,
+    padding: theme.spacing.lg,
+    backgroundColor: theme.colors.surface,
+    borderRadius: theme.radius.lg,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+    alignItems: 'center',
+    gap: 10,
+  },
+  comingSoonTitle: {
     fontSize: 18,
     fontWeight: '700',
     color: theme.colors.text,
-    marginHorizontal: theme.spacing.lg,
-    marginTop: theme.spacing.lg,
-    marginBottom: theme.spacing.md,
   },
-  grid: {
+  comingSoonBody: {
+    fontSize: 14,
+    lineHeight: 20,
+    color: theme.colors.textSecondary,
+    textAlign: 'center',
+  },
+  linkRow: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    paddingHorizontal: theme.spacing.lg,
+    alignItems: 'center',
     gap: 10,
-  },
-  featureTile: {
-    width: '47%',
+    marginHorizontal: theme.spacing.lg,
+    marginBottom: 10,
+    padding: theme.spacing.md,
     backgroundColor: theme.colors.surface,
     borderRadius: theme.radius.lg,
-    padding: theme.spacing.md,
     borderWidth: 1,
     borderColor: theme.colors.border,
   },
-  featureIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: theme.radius.md,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 8,
-  },
-  featureLabel: {
-    fontSize: 13,
+  linkText: {
+    fontSize: 14,
     fontWeight: '600',
     color: theme.colors.text,
-    textTransform: 'capitalize',
-  },
-  noteCard: {
-    flexDirection: 'row',
-    gap: 10,
-    margin: theme.spacing.lg,
-    padding: theme.spacing.md,
-    backgroundColor: '#EFF6FF',
-    borderRadius: theme.radius.lg,
-  },
-  noteText: {
-    flex: 1,
-    fontSize: 13,
-    lineHeight: 18,
-    color: theme.colors.textSecondary,
   },
 });

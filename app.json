@@ -3,9 +3,9 @@
     "name": "Kudya Parceiro",
     "slug": "kudya-parceiro",
     "scheme": "kudyaparceiro",
-      "version": "1.0.10",
+    "version": "1.0.11",
     "orientation": "portrait",
-    "icon": "./assets/azul.png",
+    "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "splash": {
       "image": "./assets/azul.png",
@@ -13,13 +13,15 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "buildNumber": "10",
+      "buildNumber": "11",
       "supportsTablet": true,
+      "usesAppleSignIn": true,
       "infoPlist": {
         "CFBundleDisplayName": "Kudya Parceiro",
-        "NSLocationWhenInUseUsageDescription": "We use your location to autofill your delivery address.",
-        "NSPhotoLibraryUsageDescription": "We require access to your photo library to allow you to upload images.",
-        "NSPhotoLibraryAddUsageDescription": "We require permission to save images to your photo library.",
+        "NSLocationWhenInUseUsageDescription": "Kudya Parceiro uses your location so drivers can share live GPS for deliveries and rides, and so partners can set accurate business and property locations.",
+        "NSCameraUsageDescription": "Kudya Parceiro needs camera access to upload product photos, documents, and profile images.",
+        "NSPhotoLibraryUsageDescription": "Kudya Parceiro needs photo library access to upload product photos, documents, and profile images.",
+        "NSPhotoLibraryAddUsageDescription": "Kudya Parceiro may save images to your photo library when you export or download documents.",
         "ITSAppUsesNonExemptEncryption": false
       },
       "bundleIdentifier": "com.ludmil.kudyaparceiro"
@@ -27,27 +29,34 @@
     "android": {
       "config": {
         "googleMaps": {
-          "apiKey": "AIzaSyDn1X_BlFj-57ydasP6uZK_X_WTERNJb78"
+          "apiKey": ""
         }
       },
       "permissions": [
         "CAMERA",
-        "LOCATION"
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_FINE_LOCATION"
       ],
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#ffffff"
+      },
       "package": "com.ludmil.KudyaParceiro",
-      "versionCode": 20
+      "versionCode": 21
     },
     "web": {
       "favicon": "./assets/azul.png"
     },
     "extra": {
-      "googleMapsApiKey": "AIzaSyBJxPi5xtT7F3oxZzlSmIuaXsIswasjkKw",
+      "googleMapsApiKey": "",
       "eas": {
         "projectId": "af01b370-2900-4de4-8dd2-1634313bbc8b"
       }
     },
     "plugins": [
-      "@react-native-community/datetimepicker"
+      "@react-native-community/datetimepicker",
+      "expo-notifications",
+      "expo-apple-authentication"
     ],
     "owner": "ludmil"
   }

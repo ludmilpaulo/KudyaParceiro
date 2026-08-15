@@ -1,7 +1,9 @@
+import { Platform } from 'react-native';
 import * as WebBrowser from 'expo-web-browser';
 import * as AuthSession from 'expo-auth-session';
 import * as Google from 'expo-auth-session/providers/google';
 import * as Facebook from 'expo-auth-session/providers/facebook';
+import * as AppleAuthentication from 'expo-apple-authentication';
 import { baseAPI } from './types';
 import { normalizeAuthResponse, AuthSessionPayload } from './authTypes';
 
@@ -9,9 +11,13 @@ export type SocialAuthResult = AuthSessionPayload;
 
 WebBrowser.maybeCompleteAuthSession();
 
-export type SocialProvider = 'google' | 'facebook' | 'instagram' | 'tiktok';
+export type SocialProvider = 'google' | 'facebook' | 'instagram' | 'tiktok' | 'apple';
 
-const REDIRECT_URI = AuthSession.makeRedirectUri({ scheme: 'kudyaparceiro', path: 'oauth' });
+export const OAUTH_REDIRECT_URI = AuthSession.makeRedirectUri({
+  scheme: 'kudyaparceiro',
+  path: 'oauth',
+  preferLocalhost: Platform.OS === 'web',
+});
 
 const GOOGLE_IOS = process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID ?? '';
 const GOOGLE_ANDROID = process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID ?? '';
@@ -20,9 +26,19 @@ const FACEBOOK_APP_ID = process.env.EXPO_PUBLIC_FACEBOOK_APP_ID ?? '';
 const INSTAGRAM_APP_ID = process.env.EXPO_PUBLIC_INSTAGRAM_APP_ID ?? '';
 const TIKTOK_CLIENT_KEY = process.env.EXPO_PUBLIC_TIKTOK_CLIENT_KEY ?? '';
 
+export type SocialTokenPayload = {
+  access_token?: string;
+  id_token?: string;
+  code?: string;
+  redirect_uri?: string;
+  code_verifier?: string;
+  first_name?: string;
+  last_name?: string;
+};
+
 export async function exchangeSocialToken(
   provider: SocialProvider,
-  tokens: { access_token?: string; id_token?: string },
+  tokens: SocialTokenPayload,
 ): Promise<SocialAuthResult> {
   const response = await fetch(`${baseAPI}/api/auth/social/`, {
     method: 'POST',
@@ -31,13 +47,24 @@ export async function exchangeSocialToken(
       provider,
       access_token: tokens.access_token ?? '',
       id_token: tokens.id_token ?? '',
+      code: tokens.code ?? '',
+      redirect_uri: tokens.redirect_uri ?? '',
+      code_verifier: tokens.code_verifier ?? '',
+      first_name: tokens.first_name ?? '',
+      last_name: tokens.last_name ?? '',
     }),
   });
   const data = await response.json();
   if (!response.ok) {
-    throw new Error(data.detail || data.message || 'Falha no login social.');
+    throw new Error(data.detail || data.message || 'Social login failed.');
   }
   return normalizeAuthResponse(data);
+}
+
+function googleClientIdForPlatform(): string {
+  if (Platform.OS === 'ios') return GOOGLE_IOS;
+  if (Platform.OS === 'android') return GOOGLE_ANDROID;
+  return GOOGLE_WEB;
 }
 
 export function useGoogleAuth() {
@@ -45,15 +72,16 @@ export function useGoogleAuth() {
     iosClientId: GOOGLE_IOS,
     androidClientId: GOOGLE_ANDROID,
     webClientId: GOOGLE_WEB,
-    redirectUri: REDIRECT_URI,
+    redirectUri: OAUTH_REDIRECT_URI,
   });
 }
 
 export function useFacebookAuth() {
   return Facebook.useAuthRequest({
     clientId: FACEBOOK_APP_ID,
-    redirectUri: REDIRECT_URI,
+    redirectUri: OAUTH_REDIRECT_URI,
     scopes: ['public_profile', 'email'],
+    responseType: AuthSession.ResponseType.Token,
   });
 }
 
@@ -64,24 +92,24 @@ const instagramDiscovery: AuthSession.DiscoveryDocument = {
 
 export async function signInWithInstagram(): Promise<SocialAuthResult> {
   if (!INSTAGRAM_APP_ID) {
-    throw new Error('Instagram não configurado (EXPO_PUBLIC_INSTAGRAM_APP_ID).');
+    throw new Error('Instagram app id not configured (EXPO_PUBLIC_INSTAGRAM_APP_ID).');
   }
   const authRequest = new AuthSession.AuthRequest({
     clientId: INSTAGRAM_APP_ID,
-    redirectUri: REDIRECT_URI,
+    redirectUri: OAUTH_REDIRECT_URI,
     scopes: ['instagram_basic'],
     responseType: AuthSession.ResponseType.Code,
     usePKCE: false,
   });
   const result = await authRequest.promptAsync(instagramDiscovery);
   if (result.type !== 'success' || !result.params.code) {
-    throw new Error('Login Instagram cancelado.');
+    throw new Error('Instagram sign-in cancelled.');
   }
   const tokenRes = await AuthSession.exchangeCodeAsync(
     {
       clientId: INSTAGRAM_APP_ID,
       code: result.params.code,
-      redirectUri: REDIRECT_URI,
+      redirectUri: OAUTH_REDIRECT_URI,
       extraParams: { grant_type: 'authorization_code' },
     },
     instagramDiscovery,
@@ -89,46 +117,82 @@ export async function signInWithInstagram(): Promise<SocialAuthResult> {
   return exchangeSocialToken('instagram', { access_token: tokenRes.accessToken });
 }
 
-const tiktokDiscovery: AuthSession.DiscoveryDocument = {
-  authorizationEndpoint: 'https://www.tiktok.com/v2/auth/authorize/',
-  tokenEndpoint: 'https://open.tiktokapis.com/v2/oauth/token/',
-};
+const tiktokAuthorizeEndpoint = 'https://www.tiktok.com/v2/auth/authorize/';
 
 export async function signInWithTikTok(): Promise<SocialAuthResult> {
   if (!TIKTOK_CLIENT_KEY) {
-    throw new Error('TikTok não configurado (EXPO_PUBLIC_TIKTOK_CLIENT_KEY).');
+    throw new Error('TikTok client key not configured (EXPO_PUBLIC_TIKTOK_CLIENT_KEY).');
   }
   const authRequest = new AuthSession.AuthRequest({
     clientId: TIKTOK_CLIENT_KEY,
-    redirectUri: REDIRECT_URI,
+    redirectUri: OAUTH_REDIRECT_URI,
     scopes: ['user.info.basic'],
     responseType: AuthSession.ResponseType.Code,
+    usePKCE: true,
     extraParams: { client_key: TIKTOK_CLIENT_KEY },
   });
-  const result = await authRequest.promptAsync(tiktokDiscovery);
+  const result = await authRequest.promptAsync({
+    authorizationEndpoint: tiktokAuthorizeEndpoint,
+  });
   if (result.type !== 'success' || !result.params.code) {
-    throw new Error('Login TikTok cancelado.');
+    if (result.type === 'dismiss' || result.type === 'cancel') {
+      throw new Error('TikTok sign-in cancelled.');
+    }
+    throw new Error('We could not sign you in with TikTok. Please try again.');
   }
-  const tokenRes = await AuthSession.exchangeCodeAsync(
-    {
-      clientId: TIKTOK_CLIENT_KEY,
+  try {
+    return await exchangeSocialToken('tiktok', {
       code: result.params.code,
-      redirectUri: REDIRECT_URI,
-      extraParams: {
-        client_key: TIKTOK_CLIENT_KEY,
-        grant_type: 'authorization_code',
-      },
-    },
-    tiktokDiscovery,
-  );
-  return exchangeSocialToken('tiktok', { access_token: tokenRes.accessToken });
+      redirect_uri: OAUTH_REDIRECT_URI,
+      code_verifier: authRequest.codeVerifier ?? '',
+    });
+  } catch (err: unknown) {
+    if (err instanceof Error && /cancel/i.test(err.message)) throw err;
+    throw new Error('We could not sign you in with TikTok. Please try again.');
+  }
+}
+
+export async function signInWithApple(): Promise<SocialAuthResult> {
+  if (Platform.OS !== 'ios') {
+    throw new Error('Sign in with Apple is available on iOS only.');
+  }
+  const available = await AppleAuthentication.isAvailableAsync();
+  if (!available) {
+    throw new Error('Sign in with Apple is not available on this device.');
+  }
+  try {
+    const credential = await AppleAuthentication.signInAsync({
+      requestedScopes: [
+        AppleAuthentication.AppleAuthenticationScope.FULL_NAME,
+        AppleAuthentication.AppleAuthenticationScope.EMAIL,
+      ],
+    });
+    if (!credential.identityToken) {
+      throw new Error('We could not sign you in with Apple. Please try again.');
+    }
+    return exchangeSocialToken('apple', {
+      id_token: credential.identityToken,
+      first_name: credential.fullName?.givenName ?? '',
+      last_name: credential.fullName?.familyName ?? '',
+    });
+  } catch (err: unknown) {
+    if (
+      err &&
+      typeof err === 'object' &&
+      'code' in err &&
+      (err as { code?: string }).code === 'ERR_REQUEST_CANCELED'
+    ) {
+      throw new Error('Apple sign-in cancelled.');
+    }
+    throw new Error('We could not sign you in with Apple. Please try again.');
+  }
 }
 
 export async function completeGoogleAuth(
   authentication: { accessToken?: string | null; idToken?: string | null } | null,
 ): Promise<SocialAuthResult> {
   if (!authentication?.accessToken && !authentication?.idToken) {
-    throw new Error('Login Google cancelado.');
+    throw new Error('Google sign-in cancelled.');
   }
   return exchangeSocialToken('google', {
     access_token: authentication.accessToken ?? undefined,
@@ -140,15 +204,17 @@ export async function completeFacebookAuth(
   authentication: { accessToken?: string | null } | null,
 ): Promise<SocialAuthResult> {
   if (!authentication?.accessToken) {
-    throw new Error('Login Facebook cancelado.');
+    throw new Error('Facebook sign-in cancelled.');
   }
   return exchangeSocialToken('facebook', { access_token: authentication.accessToken });
 }
 
 export function isSocialLoginConfigured(provider: SocialProvider): boolean {
   switch (provider) {
+    case 'apple':
+      return Platform.OS === 'ios';
     case 'google':
-      return !!(GOOGLE_IOS || GOOGLE_ANDROID || GOOGLE_WEB);
+      return !!googleClientIdForPlatform();
     case 'facebook':
       return !!FACEBOOK_APP_ID;
     case 'instagram':

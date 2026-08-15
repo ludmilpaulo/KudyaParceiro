@@ -31,11 +31,12 @@ import {
 import { Feather, FontAwesome5 } from '@expo/vector-icons';
 import { getApiConnectionHint } from '../utils/apiClient';
 import type { DriverServiceMode } from '../services/authTypes';
-import { DRIVER_SERVICE_MODES } from '../utils/partnerRoles';
+import { canUsePartnerApp, canUseRiderApp, DRIVER_SERVICE_MODES } from '../utils/partnerRoles';
 import { analytics } from '../utils/mixpanel';
 import { useTranslation } from '../hooks/useTranslation';
 import LanguagePicker from '../components/LanguagePicker';
 import PartnerButton from '../components/ui/PartnerButton';
+import SocialLoginButtons from '../components/SocialLoginButtons';
 import { theme } from '../configs/theme';
 import { useLanguage } from '../contexts/LanguageContext';
 
@@ -441,6 +442,21 @@ const SignupScreen: React.FC = () => {
         </View>
 
         <PartnerButton label={t('signUp')} onPress={handleSubmit} loading={loading} style={styles.submitBtn} />
+        <SocialLoginButtons
+          disabled={loading}
+          onSuccess={(result) => {
+            if (!result.token) return;
+            dispatch(loginUser(result));
+            analytics.trackSignup(result.username, {
+              user_type: 'social',
+              platform: 'partner-mobile',
+              method: 'social',
+            });
+            if (!canUsePartnerApp(result) && !canUseRiderApp(result)) {
+              navigation.navigate('Join');
+            }
+          }}
+        />
       </MotiView>
     </>
   );

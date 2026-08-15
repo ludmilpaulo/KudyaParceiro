@@ -39,6 +39,8 @@ export type AuthSessionPayload = {
   is_customer: boolean;
   is_driver: boolean;
   message: string;
+  created?: boolean;
+  needs_profile?: boolean;
   user?: Record<string, unknown>;
   business_profile?: BusinessProfilePayload;
   driver_service_modes?: DriverServiceMode[];
@@ -88,6 +90,8 @@ export function normalizeAuthResponse(data: Record<string, unknown>): AuthSessio
     is_customer,
     is_driver,
     message: String(data.message || 'Login com sucesso'),
+    created: Boolean(data.created),
+    needs_profile: Boolean(data.needs_profile),
     user: data.user as Record<string, unknown> | undefined,
     business_profile,
     driver_service_modes: Array.isArray(driverModes) ? driverModes : undefined,

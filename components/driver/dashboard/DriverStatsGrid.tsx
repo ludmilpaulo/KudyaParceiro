@@ -35,7 +35,7 @@ export default function DriverStatsGrid({ summary, onWalletPress, onOrdersPress,
         iconBg={driverDashboardColors.primaryLight}
         label="Wallet Balance"
         value={formatMoney(summary.walletBalance, summary.currency)}
-        actionLabel="View wallet"
+        actionLabel={onWalletPress ? "View earnings" : undefined}
         onPress={onWalletPress}
       />
       <StatCard

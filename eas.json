@@ -31,6 +31,7 @@
       "env": {
         "EXPO_PUBLIC_BASE_API": "https://www.kudya.store",
         "EXPO_PUBLIC_USE_PRODUCTION_API": "true",
+        "EXPO_PUBLIC_FACEBOOK_APP_ID": "557245288279218",
         "EAS_BUILD_NO_EXPO_GO_WARNING": "true"
       },
       "android": {
@@ -51,9 +52,7 @@
       "ios": {
         "appleId": "ludmilpaulo@gmail.com",
         "ascAppId": "6745402980",
-        "appleTeamId": "WF3T257QTW",
-        "ascApiKeyId": "8W4CUPA494",
-        "ascApiKeyIssuerId": "0cf240e3-a3d1-465d-bb95-734a26332c10"
+        "appleTeamId": "WF3T257QTW"
       }
     }
   }
