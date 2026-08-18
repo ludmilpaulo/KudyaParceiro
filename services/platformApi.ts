@@ -104,3 +104,12 @@ export const STORE_LIKE_CATEGORY_SLUGS = new Set(['restaurant', 'grocery']);
 export function isStoreLikeCategory(slug: string): boolean {
   return STORE_LIKE_CATEGORY_SLUGS.has(slug);
 }
+
+export async function fetchApiTranslations(lang: string, module?: string): Promise<Record<string, string>> {
+  const params = new URLSearchParams({ lang });
+  if (module) params.set('module', module);
+  const response = await apiFetch(`/api/translations/?${params.toString()}`, {
+    headers: { 'Accept-Language': lang },
+  });
+  return readJsonResponse<Record<string, string>>(response);
+}
