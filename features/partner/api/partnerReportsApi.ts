@@ -5,6 +5,7 @@ const API_V1_PREFIX = '/api/v1';
 
 export type PartnerReportData = {
   days?: number;
+  timeframe?: string;
   labels?: string[];
   revenue: number[];
   orders: number[];

@@ -7,9 +7,11 @@ import tailwind from 'twrnc';
 import { selectUser } from '../../redux/slices/authSlice';
 import { fetchPartnerReport } from '../../features/partner/api/partnerReportsApi';
 import AnalyticsDaysFilter from '../analytics/AnalyticsDaysFilter';
+import { getBaseApiUrl } from '../../utils/apiClient';
 
 interface ReportData {
   labels?: string[];
+  timeframe?: string;
   revenue: number[];
   orders: number[];
   meals?: { labels: string[]; data: number[] };
@@ -62,7 +64,6 @@ const Report: React.FC = () => {
                 end_date: naiveEndDate,
               },
         );
-        console.log('Response data:', responseData);
 
         if ((responseData as { message?: string }).message) {
           // Handle the case where no sales data is available
@@ -84,7 +85,8 @@ const Report: React.FC = () => {
           });
         }
       } catch (error: unknown) {
-        console.error('Error fetching data:', error.message);
+        const message = error instanceof Error ? error.message : 'Error fetching data';
+        console.error('Error fetching data:', message);
       } finally {
         setLoading(false);
       }
@@ -116,89 +118,71 @@ const Report: React.FC = () => {
     barPercentage: 0.5,
   };
 
+  const axisLabels = (() => {
+    if (data.labels && data.labels.length > 0) {
+      return data.labels;
+    }
+    if (timeframe === 'day') {
+      return Array.from({ length: 24 }, (_, hour) => `${hour}h`);
+    }
+    if (timeframe === 'month') {
+      return data.orders.map((_, index) => String(index + 1));
+    }
+    if (timeframe === 'custom') {
+      const customDays = Math.max(
+        1,
+        Math.floor((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1,
+      );
+      return Array.from({ length: customDays }, (_, index) =>
+        new Date(startDate.getTime() + index * (1000 * 60 * 60 * 24)).toLocaleDateString('pt-PT'),
+      );
+    }
+    return ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'];
+  })();
+
+  const paymentProofUrl = (path: string) => {
+    if (/^https?:\/\//i.test(path)) {
+      return path;
+    }
+    return `${getBaseApiUrl()}${path.startsWith('/') ? path : `/${path}`}`;
+  };
+
   const renderGraph = () => {
     if (data.revenue.length === 0) {
       return <Text style={tailwind`text-center`}>Nenhum dado de rendimento disponível</Text>;
     }
 
-    switch (timeframe) {
-      case 'day':
-        return (
-          <LineChart
-            data={{
-              labels: ['0h', '1h', '2h', '3h', '4h', '5h', '6h', '7h', '8h', '9h', '10h', '11h', '12h', '13h', '14h', '15h', '16h', '17h', '18h', '19h', '20h', '21h', '22h', '23h'],
-              datasets: [{ data: data.revenue }],
-            }}
-            width={screenWidth - 48}
-            height={220}
-            yAxisLabel="Kz"
-            chartConfig={chartConfig}
-            style={{ marginVertical: 8, borderRadius: 16 }}
-          />
-        );
-      case 'week':
-        return (
-          <LineChart
-            data={{
-              labels: data.labels?.map((label) => label.slice(5)) ?? ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb','Dom'],
-              datasets: [{ data: data.revenue }],
-            }}
-            width={screenWidth - 48}
-            height={220}
-            yAxisLabel="Kz"
-            yAxisSuffix=""
-            chartConfig={chartConfig}
-            style={{ marginVertical: 8, borderRadius: 16 }}
-          />
-        );
-      case 'month':
-        const daysInMonth = new Date(startDate.getFullYear(), startDate.getMonth() + 1, 0).getDate();
-        const monthLabels = Array.from({ length: daysInMonth }, (_, i) => (i + 1).toString());
-        const monthData = new Array(daysInMonth).fill(0);
-        data.revenue.forEach((value, index) => {
-          if (index < daysInMonth) {
-            monthData[index] = value;
-          }
-        });
-        return (
-          <BarChart
-            data={{
-              labels: monthLabels,
-              datasets: [{ data: monthData }],
-            }}
-            width={screenWidth - 48}
-            height={220}
-            yAxisLabel="Kz"
-            yAxisSuffix=""
-            chartConfig={chartConfig}
-            style={{ marginVertical: 8, borderRadius: 16 }}
-          />
-        );
-      case 'custom':
-        const customDays = Math.floor((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1;
-        const customLabels = Array.from({ length: customDays }, (_, i) => new Date(startDate.getTime() + i * (1000 * 60 * 60 * 24)).toLocaleDateString('pt-PT'));
-        const customData = new Array(customDays).fill(0);
-        data.revenue.forEach((value, index) => {
-          if (index < customDays) {
-            customData[index] = value;
-          }
-        });
-        return (
-          <LineChart
-            data={{
-              labels: customLabels,
-              datasets: [{ data: customData }],
-            }}
-            width={screenWidth - 48}
-            height={220}
-            yAxisLabel="Kz"
-            chartConfig={chartConfig}
-            style={{ marginVertical: 8, borderRadius: 16 }}
-          />
-        );
-      default:
-        return null;
+    if (timeframe === 'month' || timeframe === 'custom') {
+      return (
+        <BarChart
+          data={{
+            labels: axisLabels,
+            datasets: [{ data: data.revenue }],
+          }}
+          width={screenWidth - 48}
+          height={220}
+          yAxisLabel="Kz"
+          yAxisSuffix=""
+          chartConfig={chartConfig}
+          style={{ marginVertical: 8, borderRadius: 16 }}
+        />
+      );
     }
+
+    return (
+      <LineChart
+        data={{
+          labels: axisLabels,
+          datasets: [{ data: data.revenue }],
+        }}
+        width={screenWidth - 48}
+        height={220}
+        yAxisLabel="Kz"
+        yAxisSuffix=""
+        chartConfig={chartConfig}
+        style={{ marginVertical: 8, borderRadius: 16 }}
+      />
+    );
   };
 
   return (
@@ -277,7 +261,7 @@ const Report: React.FC = () => {
           ) : (
             <BarChart
               data={{
-                labels: ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb','Dom'],
+                labels: axisLabels,
                 datasets: [{ data: data.orders }],
               }}
               width={screenWidth - 48}
@@ -365,7 +349,7 @@ const Report: React.FC = () => {
             <View>
               <Text style={tailwind`text-lg`}>Total Pago: {data.total_paid_amount?.toFixed(2)} Kz</Text>
               {data.proof_of_payment && (
-                <TouchableOpacity onPress={() => Linking.openURL(`${baseAPI}${data.proof_of_payment}`)} style={styles.downloadButton}>
+                <TouchableOpacity onPress={() => Linking.openURL(paymentProofUrl(data.proof_of_payment))} style={styles.downloadButton}>
                   <Text style={tailwind`text-white`}>Baixar Comprovante de Pagamento</Text>
                 </TouchableOpacity>
               )}
