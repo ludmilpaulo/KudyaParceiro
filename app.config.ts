@@ -50,8 +50,9 @@ export default ({ config }: ConfigContext): ExpoConfig => {
     ],
     ios: {
       ...config.ios,
-      // Existing App Store profile lacks Associated Domains and Sign in with Apple.
-      usesAppleSignIn: process.env.EAS_ENABLE_APPLE_SIGNIN === 'true',
+      // Associated Domains stay off unless EAS_ENABLE_ASSOCIATED_DOMAINS=true.
+      // Sign in with Apple is on the App ID (APPLE_ID_AUTH); keep it enabled for store iOS builds.
+      usesAppleSignIn: process.env.EAS_ENABLE_APPLE_SIGNIN !== 'false',
       ...(associatedDomains.length ? { associatedDomains } : {}),
       infoPlist: {
         ...config.ios?.infoPlist,

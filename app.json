@@ -15,7 +15,7 @@
     "ios": {
       "buildNumber": "13",
       "supportsTablet": true,
-      "usesAppleSignIn": false,
+      "usesAppleSignIn": true,
       "infoPlist": {
         "CFBundleDisplayName": "Kudya Parceiro",
         "NSLocationWhenInUseUsageDescription": "Kudya Parceiro uses your location so drivers can share live GPS for deliveries and rides, and so partners can set accurate business and property locations.",
@@ -55,7 +55,8 @@
     },
     "plugins": [
       "@react-native-community/datetimepicker",
-      "expo-notifications"
+      "expo-notifications",
+      "expo-apple-authentication"
     ],
     "owner": "ludmil"
   }
