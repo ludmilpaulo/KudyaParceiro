@@ -87,8 +87,11 @@ export function resolvePartnerRoles(data: Record<string, unknown>): Pick<
   return { is_driver, is_customer };
 }
 
-export function getPartnerDashboardKind(categorySlug: string | null): 'store' | 'doctor' | 'category' {
-  if (categorySlug && ['restaurant', 'grocery'].includes(categorySlug)) {
+export function getPartnerDashboardKind(categorySlug: string | null): 'store' | 'grocery' | 'doctor' | 'category' {
+  if (categorySlug === 'grocery') {
+    return 'grocery';
+  }
+  if (categorySlug && ['restaurant'].includes(categorySlug)) {
     return 'store';
   }
   if (categorySlug === 'doctor') {

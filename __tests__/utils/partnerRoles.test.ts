@@ -5,8 +5,8 @@ describe('grocery partner routing', () => {
     expect(isPartnerRole('grocery_store_owner')).toBe(true);
   });
 
-  it('opens the store dashboard for grocery partners', () => {
-    expect(getPartnerDashboardKind('grocery')).toBe('store');
+  it('opens the grocery dashboard for grocery partners', () => {
+    expect(getPartnerDashboardKind('grocery')).toBe('grocery');
     expect(getPartnerDashboardKind('restaurant')).toBe('store');
   });
 });

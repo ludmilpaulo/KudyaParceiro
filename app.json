@@ -3,7 +3,7 @@
     "name": "Kudya Parceiro",
     "slug": "kudya-parceiro",
     "scheme": "kudyaparceiro",
-    "version": "1.0.12",
+    "version": "1.0.13",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -13,9 +13,9 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "buildNumber": "12",
+      "buildNumber": "13",
       "supportsTablet": true,
-      "usesAppleSignIn": true,
+      "usesAppleSignIn": false,
       "infoPlist": {
         "CFBundleDisplayName": "Kudya Parceiro",
         "NSLocationWhenInUseUsageDescription": "Kudya Parceiro uses your location so drivers can share live GPS for deliveries and rides, and so partners can set accurate business and property locations.",
@@ -42,7 +42,7 @@
         "backgroundColor": "#ffffff"
       },
       "package": "com.ludmil.KudyaParceiro",
-      "versionCode": 22
+      "versionCode": 23
     },
     "web": {
       "favicon": "./assets/azul.png"
@@ -55,8 +55,7 @@
     },
     "plugins": [
       "@react-native-community/datetimepicker",
-      "expo-notifications",
-      "expo-apple-authentication"
+      "expo-notifications"
     ],
     "owner": "ludmil"
   }

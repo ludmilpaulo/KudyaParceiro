@@ -97,7 +97,9 @@ export function createApiBaseQuery(apiPath: string): BaseQueryFn<string | FetchA
         endpoint === "uploadDriverPersonalDocument" ||
         endpoint === "uploadDriverVehicleDocument" ||
         endpoint === "createPropertyListing" ||
-        endpoint === "updatePropertyListing";
+        endpoint === "updatePropertyListing" ||
+        endpoint === "createGroceryProduct" ||
+        endpoint === "updateGroceryProduct";
       if (!isMultipartUpload) {
         headers.set("Content-Type", "application/json");
       }

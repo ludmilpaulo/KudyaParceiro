@@ -50,7 +50,6 @@ export default function DoctorAnalyticsCharts({ analytics, days, onDaysChange }:
         },
       ],
     }),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     [analytics, days, dt],
   );
 

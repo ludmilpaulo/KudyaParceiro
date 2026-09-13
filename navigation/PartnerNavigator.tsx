@@ -6,6 +6,7 @@ import { getPartnerCategorySlug, getPartnerDashboardKind, getUserRole } from '..
 import { useGetPartnerMeQuery } from '../redux/slices/partnerApi';
 import type { PartnerType } from '../types/partner';
 import RestaurantDrawer from './RestaurantDrawer';
+import GroceryTabNavigator from './GroceryTabNavigator';
 import CategoryPartnerDrawer from './CategoryPartnerDrawer';
 import DoctorDrawer from './DoctorDrawer';
 import PropertyDrawer from './PropertyDrawer';
@@ -17,6 +18,9 @@ function resolveDrawer(partnerType: PartnerType | null, categorySlug: string) {
   }
   if (partnerType === 'doctor' || categorySlug === 'doctor') {
     return <DoctorDrawer />;
+  }
+  if (categorySlug === 'grocery' || getPartnerDashboardKind(categorySlug) === 'grocery') {
+    return <GroceryTabNavigator />;
   }
   if (partnerType === 'restaurant' || partnerType === 'shop') {
     return <RestaurantDrawer categorySlug={categorySlug} />;
@@ -30,6 +34,9 @@ function resolveDrawer(partnerType: PartnerType | null, categorySlug: string) {
   }
 
   const kind = getPartnerDashboardKind(categorySlug);
+  if (kind === 'grocery' || categorySlug === 'grocery') {
+    return <GroceryTabNavigator />;
+  }
   if (kind === 'store') {
     return <RestaurantDrawer categorySlug={categorySlug} />;
   }
@@ -46,6 +53,7 @@ export default function PartnerNavigator() {
   const hasKnownPartnerKind =
     knownPartnerKind === 'doctor' ||
     knownPartnerKind === 'store' ||
+    knownPartnerKind === 'grocery' ||
     getUserRole(user) === 'doctor';
 
   const { data: partnerMe, isLoading, isError } = useGetPartnerMeQuery(undefined, {
