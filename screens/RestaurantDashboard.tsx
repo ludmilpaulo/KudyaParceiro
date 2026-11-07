@@ -2,9 +2,8 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, ActivityIndicator, StyleSheet, TouchableOpacity } from 'react-native';
 import { useSelector } from 'react-redux';
-import * as Location from 'expo-location';
 import { selectUser } from '../redux/slices/authSlice';
-import { fetchFornecedorData, updateLocation } from '../services/apiService';
+import { fetchFornecedorData } from '../services/apiService';
 import { FornecedorType } from '../services/types';
 import tailwind from 'twrnc'; // Correct import for tailwind
 import Screen from '../components/Screen';
@@ -86,43 +85,6 @@ const RestaurantDashboard: React.FC = () => {
       }
     };
     fetchData();
-  }, [user]);
-
-  const updateLocationWithRetry = async (userId: number, location: string, retries: number = 3) => {
-    try {
-      const response = await updateLocation(userId, location);
-      console.log('Location update response:', response);
-    } catch (error) {
-      console.error('Error updating location:', error);
-      if (retries > 0) {
-        setTimeout(() => {
-          updateLocationWithRetry(userId, location, retries - 1);
-        }, 1000);
-      } else {
-        console.error('Failed to update location after multiple attempts');
-      }
-    }
-  };
-
-  useEffect(() => {
-    const updateLocationPeriodically = async () => {
-      if (user?.user_id) {
-        let { status } = await Location.requestForegroundPermissionsAsync();
-        if (status !== 'granted') {
-          console.error('Permission to access location was denied');
-          return;
-        }
-
-        let location = await Location.getCurrentPositionAsync({});
-        const { latitude, longitude } = location.coords;
-        const loc = `${latitude},${longitude}`;
-        console.log('Updating location to:', loc);
-        await updateLocationWithRetry(user.user_id, loc);
-      }
-    };
-
-    const intervalId = setInterval(updateLocationPeriodically, 5000); // Update every 5 seconds for testing
-    return () => clearInterval(intervalId);
   }, [user]);
 
   return (

@@ -275,6 +275,9 @@ export type PropertyDashboardStats = {
   pendingListings: number;
   pendingEnquiries: number;
   totalEnquiries: number;
+  stayBookings: number;
+  leaseCount: number;
+  applicationCount: number;
   recentEnquiries: PropertyEnquiry[];
   analytics: PropertyDashboardAnalytics;
 };

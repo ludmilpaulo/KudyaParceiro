@@ -1,15 +1,22 @@
 import { baseAPI } from './types';
 import { UserOrder } from './ordertypes';
 
-export const getDriverProfile = async (userId: string, _dispatch?: unknown) => {
+const authHeaders = (accessToken?: string | null): Record<string, string> => {
+  const token = (accessToken || '').trim();
+  return token ? { Authorization: `Bearer ${token}` } : {};
+};
+
+export const getDriverProfile = async (accessToken: string | null | undefined) => {
+  if (!accessToken) return null;
   try {
     const response = await fetch(`${baseAPI}/driver/profile/`, {
       method: 'POST',
       headers: {
         Accept: 'application/json',
         'Content-Type': 'application/json',
+        ...authHeaders(accessToken),
       },
-      body: JSON.stringify({ user_id: userId }),
+      body: JSON.stringify({}),
     });
     if (!response.ok) {
       return null;
@@ -24,9 +31,12 @@ export const getDriverProfile = async (userId: string, _dispatch?: unknown) => {
   }
 };
 
-export const getDriverOrders = async (_dispatch?: unknown): Promise<UserOrder[]> => {
+export const getDriverOrders = async (accessToken: string | null | undefined): Promise<UserOrder[]> => {
+  if (!accessToken) return [];
   try {
-    const response = await fetch(`${baseAPI}/driver/orders/ready/`);
+    const response = await fetch(`${baseAPI}/driver/orders/ready/`, {
+      headers: { Accept: 'application/json', ...authHeaders(accessToken) },
+    });
     if (!response.ok) {
       return [];
     }
@@ -144,11 +154,10 @@ export const rejectOrder = async (orderId: number, accessToken: string) => {
 interface VerifyOrderParams {
   access_token: string;
   order_id: number;
-  pin: string;
   received_items: boolean[];
 }
 
-export const verifyOrder = async ({ access_token, order_id, pin, received_items }: VerifyOrderParams) => {
+export const verifyOrder = async ({ access_token, order_id, received_items }: VerifyOrderParams) => {
   try {
     const response = await fetch(`${baseAPI}/driver/verify-order/`, {
       method: 'POST',
@@ -159,7 +168,6 @@ export const verifyOrder = async ({ access_token, order_id, pin, received_items 
       body: JSON.stringify({
         access_token,
         order_id,
-        pin,
         received_items,
       }),
     });

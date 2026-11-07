@@ -164,6 +164,9 @@ export function mapPropertyDashboardStats(row: RawRecord): PropertyDashboardStat
     pendingListings: num(row.pending_listings),
     pendingEnquiries: num(row.pending_enquiries),
     totalEnquiries: num(row.total_enquiries),
+    stayBookings: num(row.stay_bookings),
+    leaseCount: num(row.lease_count),
+    applicationCount: num(row.application_count),
     recentEnquiries: recent.map((item) => mapPropertyEnquiry(item as RawRecord)),
     analytics: mapPropertyAnalytics(row.analytics),
   };

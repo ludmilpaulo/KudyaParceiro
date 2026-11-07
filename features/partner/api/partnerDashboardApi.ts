@@ -36,8 +36,20 @@ async function partnerFetch(path: string, init: RequestInit = {}) {
   if (!response.ok) {
     let message = `Request failed (${response.status})`;
     try {
-      const body = await response.json();
-      message = body.error || body.detail || message;
+      const body: unknown = await response.json();
+      if (body && typeof body === 'object') {
+        const record = body as Record<string, unknown>;
+        const direct = record.error ?? record.detail;
+        if (typeof direct === 'string' && direct) {
+          message = direct;
+        } else {
+          const firstField = Object.entries(record).find(([, value]) => Array.isArray(value) && value.length);
+          if (firstField) {
+            const [field, value] = firstField as [string, unknown[]];
+            message = field === 'non_field_errors' ? String(value[0]) : `${field}: ${String(value[0])}`;
+          }
+        }
+      }
     } catch {
       // ignore
     }
@@ -99,6 +111,17 @@ export async function createPartnerOpeningHour(payload: Record<string, unknown>)
     method: 'POST',
     body: JSON.stringify(payload),
   });
+}
+
+export async function updatePartnerOpeningHour(id: number, payload: Record<string, unknown>) {
+  return partnerFetch(`/opening-hours/${id}/`, {
+    method: 'PATCH',
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function deletePartnerOpeningHour(id: number) {
+  return partnerFetch(`/opening-hours/${id}/`, { method: 'DELETE' });
 }
 
 export async function updatePartnerLocation(location: string) {

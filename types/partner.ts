@@ -1,5 +1,6 @@
 export type PartnerType =
   | "restaurant"
+  | "grocery"
   | "shop"
   | "doctor"
   | "driver"

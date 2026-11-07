@@ -100,6 +100,20 @@ export type PropertyTranslationKey =
   | "goodAfternoon"
   | "goodEvening"
   | "dashboardGreetingSubtitle"
+  | "helloLandlord"
+  | "landlordHomeSubtitle"
+  | "pillProperties"
+  | "pillBookings"
+  | "pillLeases"
+  | "pillMessages"
+  | "menuListProperty"
+  | "menuBookings"
+  | "menuLeases"
+  | "menuRequests"
+  | "menuCalendar"
+  | "menuAnalytics"
+  | "languageAutomatic"
+  | "languagePreviewLine"
   | "propertyOverview"
   | "totalProperties"
   | "activeProperties"
@@ -372,6 +386,20 @@ const en: PropertyTranslationMap = {
   goodAfternoon: "Good afternoon",
   goodEvening: "Good evening",
   dashboardGreetingSubtitle: "Manage your properties and enquiries.",
+  helloLandlord: "Hello, {name}",
+  landlordHomeSubtitle: "Manage your properties, bookings and leases.",
+  pillProperties: "Properties",
+  pillBookings: "Bookings",
+  pillLeases: "Leases",
+  pillMessages: "Messages",
+  menuListProperty: "List a property",
+  menuBookings: "Bookings (short-term)",
+  menuLeases: "Leases (long-term)",
+  menuRequests: "Tenants and requests",
+  menuCalendar: "Availability",
+  menuAnalytics: "Analytics",
+  languageAutomatic: "Automatic",
+  languagePreviewLine: "Find your next home",
   propertyOverview: "Property overview",
   totalProperties: "Total properties",
   activeProperties: "Active",
@@ -644,6 +672,20 @@ const pt: PropertyTranslationMap = {
   goodAfternoon: "Boa tarde",
   goodEvening: "Boa noite",
   dashboardGreetingSubtitle: "Gira as suas propriedades e pedidos.",
+  helloLandlord: "Olá, {name}",
+  landlordHomeSubtitle: "Gira propriedades, reservas e contratos.",
+  pillProperties: "Propriedades",
+  pillBookings: "Reservas",
+  pillLeases: "Contratos",
+  pillMessages: "Mensagens",
+  menuListProperty: "Anunciar propriedade",
+  menuBookings: "Reservas (curta duração)",
+  menuLeases: "Contratos (longa duração)",
+  menuRequests: "Inquilinos e pedidos",
+  menuCalendar: "Disponibilidade",
+  menuAnalytics: "Análises",
+  languageAutomatic: "Automático",
+  languagePreviewLine: "Encontre a sua próxima casa",
   propertyOverview: "Visão geral",
   totalProperties: "Total de propriedades",
   activeProperties: "Activas",
@@ -875,6 +917,20 @@ const fr: PropertyTranslationMap = {
   goodAfternoon: "Bon après-midi",
   goodEvening: "Bonsoir",
   dashboardGreetingSubtitle: "Gérez vos propriétés et demandes.",
+  helloLandlord: "Bonjour, {name}",
+  landlordHomeSubtitle: "Gérez vos biens, réservations et baux.",
+  pillProperties: "Biens",
+  pillBookings: "Réservations",
+  pillLeases: "Baux",
+  pillMessages: "Messages",
+  menuListProperty: "Publier un bien",
+  menuBookings: "Réservations (court séjour)",
+  menuLeases: "Baux (longue durée)",
+  menuRequests: "Locataires et demandes",
+  menuCalendar: "Disponibilité",
+  menuAnalytics: "Analyses",
+  languageAutomatic: "Automatique",
+  languagePreviewLine: "Trouvez votre prochain logement",
   propertyOverview: "Aperçu des propriétés",
   totalProperties: "Total des propriétés",
   activeProperties: "Actives",
@@ -1106,6 +1162,20 @@ const es: PropertyTranslationMap = {
   goodAfternoon: "Buenas tardes",
   goodEvening: "Buenas noches",
   dashboardGreetingSubtitle: "Gestiona tus propiedades y consultas.",
+  helloLandlord: "Hola, {name}",
+  landlordHomeSubtitle: "Gestiona propiedades, reservas y contratos.",
+  pillProperties: "Propiedades",
+  pillBookings: "Reservas",
+  pillLeases: "Contratos",
+  pillMessages: "Mensajes",
+  menuListProperty: "Publicar propiedad",
+  menuBookings: "Reservas (corta estancia)",
+  menuLeases: "Contratos (larga duración)",
+  menuRequests: "Inquilinos y solicitudes",
+  menuCalendar: "Disponibilidad",
+  menuAnalytics: "Analítica",
+  languageAutomatic: "Automático",
+  languagePreviewLine: "Encuentra tu próximo hogar",
   propertyOverview: "Resumen de propiedades",
   totalProperties: "Total de propiedades",
   activeProperties: "Activas",

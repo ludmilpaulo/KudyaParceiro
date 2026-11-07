@@ -62,9 +62,10 @@ export function canUsePartnerApp(
   },
 ): boolean {
   if (payload.is_driver) return false;
-  if (payload.is_customer) return false;
   if (payload.business_profile) return true;
-  return isPartnerRole(getUserRole(payload));
+  if (isPartnerRole(getUserRole(payload))) return true;
+  if (payload.is_customer) return false;
+  return false;
 }
 
 export function canUseRiderApp(
@@ -87,14 +88,19 @@ export function resolvePartnerRoles(data: Record<string, unknown>): Pick<
   return { is_driver, is_customer };
 }
 
-export function getPartnerDashboardKind(categorySlug: string | null): 'store' | 'grocery' | 'doctor' | 'category' {
-  if (categorySlug === 'grocery') {
+export function getPartnerDashboardKind(
+  categorySlug: string | null,
+  role?: string | null,
+): 'store' | 'grocery' | 'doctor' | 'category' {
+  const slug = (categorySlug || '').toLowerCase();
+  const resolvedRole = (role || '').toLowerCase();
+  if (slug === 'grocery' || resolvedRole === 'grocery_store_owner') {
     return 'grocery';
   }
-  if (categorySlug && ['restaurant'].includes(categorySlug)) {
+  if (slug === 'restaurant' || resolvedRole === 'restaurant') {
     return 'store';
   }
-  if (categorySlug === 'doctor') {
+  if (slug === 'doctor' || resolvedRole === 'doctor') {
     return 'doctor';
   }
   return 'category';

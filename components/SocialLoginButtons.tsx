@@ -12,6 +12,7 @@ import {
   signInWithTikTok,
   signInWithApple,
   isSocialLoginConfigured,
+  loadSocialPublicConfig,
   SocialAuthResult,
   SocialProvider,
 } from '../services/socialAuth';
@@ -42,6 +43,7 @@ export default function SocialLoginButtons({ onSuccess, disabled }: Props) {
   const { t } = useTranslation();
   const [loadingProvider, setLoadingProvider] = useState<SocialProvider | null>(null);
   const [appleAvailable, setAppleAvailable] = useState(false);
+  const [, setConfigReady] = useState(0);
   const [googleRequest, googleResponse, promptGoogle] = useGoogleAuth();
   const [fbRequest, fbResponse, promptFacebook] = useFacebookAuth();
 
@@ -49,6 +51,7 @@ export default function SocialLoginButtons({ onSuccess, disabled }: Props) {
     if (Platform.OS === 'ios') {
       AppleAuthentication.isAvailableAsync().then(setAppleAvailable);
     }
+    void loadSocialPublicConfig().then(() => setConfigReady((n) => n + 1));
   }, []);
 
   useEffect(() => {

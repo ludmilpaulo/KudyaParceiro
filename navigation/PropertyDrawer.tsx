@@ -6,7 +6,6 @@ import {
   DrawerItemList,
   type DrawerContentComponentProps,
 } from "@react-navigation/drawer";
-import { LinearGradient } from "expo-linear-gradient";
 import { StyleSheet, Text, View } from "react-native";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import { useDispatch } from "react-redux";
@@ -23,6 +22,10 @@ import PropertyStayCalendarScreen from "../screens/property/PropertyStayCalendar
 import LanguageSettingsScreen from "../screens/doctor/LanguageSettingsScreen";
 import Profile from "../components/restaurant/Profile";
 
+function PropertyLanguageSettings() {
+  return <LanguageSettingsScreen propertyPreview />;
+}
+
 const Drawer = createDrawerNavigator();
 
 function CustomDrawerContent(props: DrawerContentComponentProps) {
@@ -30,27 +33,27 @@ function CustomDrawerContent(props: DrawerContentComponentProps) {
   const { pt } = usePropertyTranslation();
 
   return (
-    <LinearGradient colors={["#0f766e", "#14b8a6"]} style={styles.drawerContent}>
+    <View style={styles.drawerContent}>
       <View style={styles.drawerHeader}>
         <Text style={styles.drawerBrand}>{pt("propertyBrand")}</Text>
-        <Text style={styles.drawerSub}>Partner</Text>
+        <Text style={styles.drawerSub}>{pt("landlordHomeSubtitle")}</Text>
       </View>
-      <DrawerContentScrollView {...props}>
+      <DrawerContentScrollView {...props} contentContainerStyle={styles.drawerScroll}>
         <DrawerItemList {...props} />
         <DrawerItem
           label={pt("languageSettings")}
-          icon={() => <Ionicons name="language-outline" size={22} color="#FFF" />}
+          icon={() => <Ionicons name="language-outline" size={22} color="#5b21b6" />}
           labelStyle={styles.drawerLabel}
           onPress={() => props.navigation.navigate("LanguageSettings")}
         />
         <DrawerItem
           label={pt("logout")}
-          icon={() => <Ionicons name="log-out-outline" size={22} color="#FFF" />}
+          icon={() => <Ionicons name="log-out-outline" size={22} color="#5b21b6" />}
           labelStyle={styles.drawerLabel}
           onPress={() => dispatch(logoutUser())}
         />
       </DrawerContentScrollView>
-    </LinearGradient>
+    </View>
   );
 }
 
@@ -59,59 +62,26 @@ export default function PropertyDrawer() {
 
   return (
     <Drawer.Navigator
+      initialRouteName="PropertyDashboard"
       drawerContent={(props) => <CustomDrawerContent {...props} />}
       screenOptions={{
-        headerStyle: { backgroundColor: "#0f766e" },
+        headerStyle: { backgroundColor: "#5b21b6" },
         headerTintColor: "#fff",
-        drawerActiveTintColor: "#fff",
-        drawerInactiveTintColor: "#ecfeff",
+        drawerActiveTintColor: "#5b21b6",
+        drawerInactiveTintColor: "#334155",
+        drawerActiveBackgroundColor: "#ede9fe",
+        drawerStyle: { backgroundColor: "#fff" },
         headerTitleStyle: { fontWeight: "700" },
       }}
     >
-      <Drawer.Screen
-        name="PropertyDashboard"
-        component={PropertyDashboardScreen}
-        options={{
-          title: pt("propertyDashboardTitle"),
-          drawerLabel: pt("overview"),
-          drawerIcon: () => <Ionicons name="home-outline" size={22} color="#FFF" />,
-        }}
-      />
-      <Drawer.Screen
-        name="PropertyListings"
-        component={PropertyListingsScreen}
-        options={{
-          title: pt("properties"),
-          drawerLabel: pt("properties"),
-          drawerIcon: () => <Ionicons name="business-outline" size={22} color="#FFF" />,
-        }}
-      />
       <Drawer.Screen
         name="PropertyAddWizard"
         component={PropertyAddWizardScreen}
         options={{
           title: pt("addProperty"),
-          drawerLabel: pt("addProperty"),
+          drawerLabel: pt("menuListProperty"),
           headerShown: false,
-          drawerIcon: () => <Ionicons name="add-circle-outline" size={22} color="#FFF" />,
-        }}
-      />
-      <Drawer.Screen
-        name="PropertyEnquiries"
-        component={PropertyEnquiriesScreen}
-        options={{
-          title: pt("enquiries"),
-          drawerLabel: pt("enquiries"),
-          drawerIcon: () => <Ionicons name="mail-outline" size={22} color="#FFF" />,
-        }}
-      />
-      <Drawer.Screen
-        name="PropertyApplications"
-        component={PropertyApplicationsScreen}
-        options={{
-          title: pt("applications"),
-          drawerLabel: pt("applications"),
-          drawerIcon: () => <Ionicons name="document-text-outline" size={22} color="#FFF" />,
+          drawerIcon: () => <Ionicons name="add-circle-outline" size={22} color="#5b21b6" />,
         }}
       />
       <Drawer.Screen
@@ -119,8 +89,26 @@ export default function PropertyDrawer() {
         component={PropertyStayBookingsScreen}
         options={{
           title: pt("stayBookings"),
-          drawerLabel: pt("stayBookings"),
-          drawerIcon: () => <Ionicons name="bed-outline" size={22} color="#FFF" />,
+          drawerLabel: pt("menuBookings"),
+          drawerIcon: () => <Ionicons name="bed-outline" size={22} color="#5b21b6" />,
+        }}
+      />
+      <Drawer.Screen
+        name="PropertyApplications"
+        component={PropertyApplicationsScreen}
+        options={{
+          title: pt("applications"),
+          drawerLabel: pt("menuLeases"),
+          drawerIcon: () => <Ionicons name="document-text-outline" size={22} color="#5b21b6" />,
+        }}
+      />
+      <Drawer.Screen
+        name="PropertyEnquiries"
+        component={PropertyEnquiriesScreen}
+        options={{
+          title: pt("enquiries"),
+          drawerLabel: pt("menuRequests"),
+          drawerIcon: () => <Ionicons name="mail-outline" size={22} color="#5b21b6" />,
         }}
       />
       <Drawer.Screen
@@ -128,8 +116,26 @@ export default function PropertyDrawer() {
         component={PropertyStayCalendarScreen}
         options={{
           title: pt("availability"),
-          drawerLabel: pt("availability"),
-          drawerIcon: () => <Ionicons name="calendar-outline" size={22} color="#FFF" />,
+          drawerLabel: pt("menuCalendar"),
+          drawerIcon: () => <Ionicons name="calendar-outline" size={22} color="#5b21b6" />,
+        }}
+      />
+      <Drawer.Screen
+        name="PropertyDashboard"
+        component={PropertyDashboardScreen}
+        options={{
+          title: pt("propertyDashboardTitle"),
+          drawerLabel: pt("menuAnalytics"),
+          drawerIcon: () => <Ionicons name="stats-chart-outline" size={22} color="#5b21b6" />,
+        }}
+      />
+      <Drawer.Screen
+        name="PropertyListings"
+        component={PropertyListingsScreen}
+        options={{
+          title: pt("properties"),
+          drawerLabel: pt("pillProperties"),
+          drawerIcon: () => <Ionicons name="business-outline" size={22} color="#5b21b6" />,
         }}
       />
       <Drawer.Screen
@@ -145,12 +151,12 @@ export default function PropertyDrawer() {
         component={Profile}
         options={{
           title: pt("profile"),
-          drawerIcon: () => <Ionicons name="person-outline" size={22} color="#FFF" />,
+          drawerIcon: () => <Ionicons name="person-outline" size={22} color="#5b21b6" />,
         }}
       />
       <Drawer.Screen
         name="LanguageSettings"
-        component={LanguageSettingsScreen}
+        component={PropertyLanguageSettings}
         options={{
           title: pt("languageSettings"),
           drawerItemStyle: { display: "none" },
@@ -161,15 +167,17 @@ export default function PropertyDrawer() {
 }
 
 const styles = StyleSheet.create({
-  drawerContent: { flex: 1 },
+  drawerContent: { flex: 1, backgroundColor: "#fff" },
   drawerHeader: {
     paddingTop: 48,
     paddingHorizontal: 20,
     paddingBottom: 16,
+    backgroundColor: "#fff",
     borderBottomWidth: 1,
-    borderBottomColor: "rgba(255,255,255,0.2)",
+    borderBottomColor: "#ede9fe",
   },
-  drawerBrand: { color: "#fff", fontSize: 20, fontWeight: "800" },
-  drawerSub: { color: "#ccfbf1", marginTop: 4, fontSize: 12, fontWeight: "600" },
-  drawerLabel: { color: "#fff", fontWeight: "600" },
+  drawerScroll: { paddingTop: 8 },
+  drawerBrand: { color: "#5b21b6", fontSize: 20, fontWeight: "800" },
+  drawerSub: { color: "#64748b", marginTop: 4, fontSize: 12, fontWeight: "600" },
+  drawerLabel: { color: "#1e293b", fontWeight: "600" },
 });

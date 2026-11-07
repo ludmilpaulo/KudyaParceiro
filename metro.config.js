@@ -12,10 +12,16 @@ config.resolver = {
     if (platform === 'web' && moduleName === 'react-native-maps') {
       return { filePath: mapsStub, type: 'sourceFile' };
     }
-    if (defaultResolveRequest) {
-      return defaultResolveRequest(context, moduleName, platform);
+    // Prefer Metro's live context so newly added screens (e.g. grocery) resolve
+    // even if Expo's captured resolver still holds a stale module map.
+    try {
+      return context.resolveRequest(context, moduleName, platform);
+    } catch (error) {
+      if (defaultResolveRequest) {
+        return defaultResolveRequest(context, moduleName, platform);
+      }
+      throw error;
     }
-    return context.resolveRequest(context, moduleName, platform);
   },
 };
 

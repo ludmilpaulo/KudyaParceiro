@@ -123,7 +123,6 @@ const RestaurantMap = () => {
         const response = await verifyOrder({
           access_token: user.token,
           order_id: order.id,
-          pin: order.secret_pin,
           received_items: verifiedItems,
         });
 

@@ -52,10 +52,9 @@ const CustomDrawerContent = (props: DrawerContentComponentProps) => {
   );
 };
 
-const RestaurantDrawer = ({ categorySlug = 'restaurant' }: { categorySlug?: string }) => {
+const RestaurantDrawer = ({ categorySlug: _categorySlug = 'restaurant' }: { categorySlug?: string }) => {
   const { t } = useTranslation();
-  const isGrocery = categorySlug === 'grocery';
-  const dashboardTitle = isGrocery ? t('drawerGroceryDashboard') : t('drawerDashboard');
+  const dashboardTitle = t('drawerDashboard');
 
   return (
     <Drawer.Navigator

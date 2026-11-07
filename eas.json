@@ -45,6 +45,12 @@
     }
   },
   "submit": {
+    "play-production": {
+      "android": {
+        "track": "production",
+        "releaseStatus": "draft"
+      }
+    },
     "production": {
       "android": {
         "track": "internal",

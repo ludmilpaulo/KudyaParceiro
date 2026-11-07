@@ -65,12 +65,16 @@ const UserProfile: React.FC = () => {
 
   useEffect(() => {
     const loadProfile = async () => {
-      if (!user?.user_id) return;
+      if (!accessToken) return;
       try {
         const response = await fetch(`${baseAPI}/driver/profile/`, {
           method: "POST",
-          headers: { Accept: "application/json", "Content-Type": "application/json" },
-          body: JSON.stringify({ user_id: user.user_id }),
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${accessToken}`,
+          },
+          body: JSON.stringify({}),
         });
         if (!response.ok) return;
         const data = await response.json();
@@ -94,7 +98,7 @@ const UserProfile: React.FC = () => {
       }
     };
     void loadProfile();
-  }, [user?.user_id]);
+  }, [accessToken]);
 
   const handleImagePicker = async (source: "camera" | "library") => {
     let result;

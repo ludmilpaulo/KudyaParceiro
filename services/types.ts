@@ -68,11 +68,19 @@ export type UserDetails = {
     id?: number;
     name: string;
     short_description: string;
-   // image?: ImageType[]; // Ensure image is an array of ImageType
-    image: string;
-    price: string;
-    category: string | number;
-    // Add other fields if necessary...
+    description?: string;
+    /** API returns absolute image URLs as a list. */
+    image?: string | string[];
+    images?: string[];
+    /** Customer-facing price (with platform markup). */
+    price: string | number;
+    /** Partner-entered price before markup (partner endpoints only). */
+    base_price?: string | number;
+    category: string | number | null;
+    category_id?: number | null;
+    stock?: string | number;
+    stock_status?: string;
+    is_active?: boolean;
   };
   
  // @/services/types.ts
@@ -137,8 +145,10 @@ export type OpeningHour = {
 
   export interface OpeningHourType {
     id?: number;
-    restaurant: number;
-    day: number;
+    restaurant?: number;
+    /** Write: 1=Monday..7=Sunday. Read: server returns the display label; use day_number. */
+    day: number | string;
+    day_number?: number;
     from_hour: string;
     to_hour: string;
     is_closed: boolean;

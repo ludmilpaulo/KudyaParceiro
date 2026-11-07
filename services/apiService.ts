@@ -3,6 +3,7 @@ import {
   advancePartnerOrderStatus,
   createPartnerOpeningHour,
   createPartnerProduct,
+  deletePartnerOpeningHour,
   deletePartnerProduct,
   fetchPartnerOpeningHours,
   fetchPartnerOrders,
@@ -10,6 +11,7 @@ import {
   fetchPartnerProducts,
   fetchPartnerStore,
   updatePartnerLocation,
+  updatePartnerOpeningHour,
   updatePartnerProduct,
   updatePartnerStore,
 } from '../features/partner/api/partnerDashboardApi';
@@ -95,6 +97,14 @@ export const getOpeningHours = async (_restaurantId: number): Promise<OpeningHou
 
 export const createOpeningHour = async (_restaurantId: number, data: OpeningHourType): Promise<OpeningHourType> => {
   return createPartnerOpeningHour(data as unknown as Record<string, unknown>);
+};
+
+export const updateOpeningHour = async (id: number, data: Partial<OpeningHourType>): Promise<OpeningHourType> => {
+  return updatePartnerOpeningHour(id, data as Record<string, unknown>);
+};
+
+export const deleteOpeningHour = async (id: number): Promise<void> => {
+  await deletePartnerOpeningHour(id);
 };
 
 const API_URL = baseAPI;

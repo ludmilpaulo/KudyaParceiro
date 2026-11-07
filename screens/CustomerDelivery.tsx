@@ -277,7 +277,7 @@ const CustomerDelivery = () => {
       >
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
-            <Text style={styles.pinPrompt}>Insira o PIN secreto para completar a entrega:</Text>
+            <Text style={styles.pinPrompt}>Peça ao cliente o PIN de entrega e insira-o para completar a entrega:</Text>
             <TextInput
               style={styles.pinInput}
               value={pin}

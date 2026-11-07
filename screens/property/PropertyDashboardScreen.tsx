@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Pressable,
@@ -10,7 +10,7 @@ import {
 import { useNavigation } from "@react-navigation/native";
 import type { DrawerNavigationProp } from "@react-navigation/drawer";
 import Ionicons from "react-native-vector-icons/Ionicons";
-import { useGetPropertyApplicationsQuery, useGetPropertyDashboardQuery } from "../../redux/slices/propertyApi";
+import { useGetPropertyDashboardQuery } from "../../redux/slices/propertyApi";
 import { usePropertyTranslation } from "../../hooks/usePropertyTranslation";
 import PropertyAnalyticsCharts from "../../components/property/PropertyAnalyticsCharts";
 import PropertyKpiCard from "../../components/property/PropertyKpiCard";
@@ -19,12 +19,6 @@ import type { AnalyticsDays } from "../../components/analytics/AnalyticsDaysFilt
 import { hasPropertyDraft } from "../../utils/propertyDraftStorage";
 
 type DrawerNav = DrawerNavigationProp<Record<string, undefined>>;
-
-function greetingKey(hour: number): "goodMorning" | "goodAfternoon" | "goodEvening" {
-  if (hour < 12) return "goodMorning";
-  if (hour < 18) return "goodAfternoon";
-  return "goodEvening";
-}
 
 export default function PropertyDashboardScreen() {
   const { pt, enquiryStatusLabel } = usePropertyTranslation();
@@ -35,16 +29,10 @@ export default function PropertyDashboardScreen() {
     { days },
     { pollingInterval: 60000 },
   );
-  const { data: applications = [] } = useGetPropertyApplicationsQuery();
 
   useEffect(() => {
     void hasPropertyDraft().then(setDraftReady);
   }, []);
-
-  const activePct = useMemo(() => {
-    if (!stats || !stats.totalListings) return "0%";
-    return `${Math.round((stats.activeListings / stats.totalListings) * 100)}%`;
-  }, [stats]);
 
   if (isLoading) {
     return (
@@ -66,22 +54,20 @@ export default function PropertyDashboardScreen() {
     );
   }
 
-  const hour = new Date().getHours();
-  const greeting = pt(greetingKey(hour));
-
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <View style={styles.hero}>
-        <Text style={styles.heroGreeting}>{greeting}</Text>
-        <Text style={styles.heroTitle}>{stats.businessName}</Text>
-        <Text style={styles.heroSubtitle}>{pt("dashboardGreetingSubtitle")}</Text>
+        <Text style={styles.heroTitle}>
+          {pt("helloLandlord").replace("{name}", stats.businessName)}
+        </Text>
+        <Text style={styles.heroSubtitle}>{pt("landlordHomeSubtitle")}</Text>
 
         <Pressable
           style={styles.addBtn}
           onPress={() => navigation.navigate("PropertyAddWizard")}
         >
-          <Ionicons name="add" size={20} color="#0f172a" />
-          <Text style={styles.addBtnText}>{pt("addProperty")}</Text>
+          <Ionicons name="add" size={20} color="#fff" />
+          <Text style={styles.addBtnText}>{pt("menuListProperty")}</Text>
         </Pressable>
       </View>
 
@@ -118,42 +104,27 @@ export default function PropertyDashboardScreen() {
       >
         <PropertyKpiCard
           icon="home-outline"
-          label={pt("totalProperties")}
+          label={pt("pillProperties")}
           value={stats.totalListings}
-          hint={pt("ofListings")}
           onPress={() => navigation.navigate("PropertyListings")}
         />
         <PropertyKpiCard
-          icon="checkmark-circle-outline"
-          label={pt("activeProperties")}
-          value={stats.activeListings}
-          hint={`${activePct} ${pt("ofListings")}`}
-          accent={propertyTheme.success}
-          onPress={() => navigation.navigate("PropertyListings")}
-        />
-        <PropertyKpiCard
-          icon="time-outline"
-          label={pt("pendingReview")}
-          value={stats.pendingListings}
-          hint={pt("needsAttention")}
-          accent={propertyTheme.warning}
-          onPress={() => navigation.navigate("PropertyListings")}
-        />
-        <PropertyKpiCard
-          icon="chatbubble-ellipses-outline"
-          label={pt("enquiries")}
-          value={stats.totalEnquiries}
-          hint={`${stats.pendingEnquiries} ${pt("pending").toLowerCase()}`}
-          accent="#0284c7"
-          onPress={() => navigation.navigate("PropertyEnquiries")}
+          icon="bed-outline"
+          label={pt("pillBookings")}
+          value={stats.stayBookings}
+          onPress={() => navigation.navigate("PropertyStayBookings")}
         />
         <PropertyKpiCard
           icon="document-text-outline"
-          label={pt("applications")}
-          value={applications.length}
-          hint={pt("applicationsSubtitle")}
-          accent="#7c3aed"
+          label={pt("pillLeases")}
+          value={stats.applicationCount}
           onPress={() => navigation.navigate("PropertyApplications")}
+        />
+        <PropertyKpiCard
+          icon="chatbubble-ellipses-outline"
+          label={pt("pillMessages")}
+          value={stats.pendingEnquiries}
+          onPress={() => navigation.navigate("PropertyEnquiries")}
         />
       </ScrollView>
 
@@ -222,9 +193,8 @@ const styles = StyleSheet.create({
     padding: 20,
     marginBottom: 14,
   },
-  heroGreeting: { color: "#ccfbf1", fontSize: 13, fontWeight: "600" },
-  heroTitle: { color: "#fff", fontSize: 24, fontWeight: "800", marginTop: 4 },
-  heroSubtitle: { color: "#99f6e4", marginTop: 6, fontSize: 14, lineHeight: 20 },
+  heroTitle: { color: "#fff", fontSize: 24, fontWeight: "800" },
+  heroSubtitle: { color: "#ddd6fe", marginTop: 6, fontSize: 14, lineHeight: 20 },
   addBtn: {
     marginTop: 18,
     alignSelf: "flex-start",
@@ -236,17 +206,17 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
   },
-  addBtnText: { color: "#0f172a", fontWeight: "800", fontSize: 14 },
+  addBtnText: { color: "#fff", fontWeight: "800", fontSize: 14 },
   draftBanner: {
     flexDirection: "row",
     alignItems: "center",
     gap: 8,
-    backgroundColor: "#ecfdf5",
+    backgroundColor: "#f5f3ff",
     borderRadius: 14,
     padding: 14,
     marginBottom: 10,
     borderWidth: 1,
-    borderColor: "#a7f3d0",
+    borderColor: "#ddd6fe",
   },
   draftText: { flex: 1, color: propertyTheme.primary, fontWeight: "700" },
   attentionBanner: {

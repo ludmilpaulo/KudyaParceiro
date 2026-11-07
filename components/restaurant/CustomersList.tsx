@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, Image, StyleSheet, ActivityIndicator } from 'react-native';
 import tailwind from 'twrnc';
 import { fetchPartnerReportCustomers } from '../../features/partner/api/partnerReportsApi';
+import { baseAPI } from '../../services/types';
 
 interface Customer {
   id: number;
@@ -14,18 +15,20 @@ interface Customer {
 const CustomersList: React.FC = () => {
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
 
   useEffect(() => {
     fetchData();
   }, []);
 
   const fetchData = async () => {
+    setLoadError(false);
     try {
       const response = await fetchPartnerReportCustomers();
-      console.log('customer', response);
-      setCustomers(response);
+      setCustomers(Array.isArray(response) ? response : []);
     } catch (error) {
       console.error('Error fetching customers:', error);
+      setLoadError(true);
     } finally {
       setLoading(false);
     }
@@ -43,11 +46,20 @@ const CustomersList: React.FC = () => {
     <View style={tailwind`h-full w-full`}>
       <ScrollView style={tailwind`px-4 py-4`}>
         <Text style={tailwind`text-2xl font-bold mb-4 text-center`}>Customers List</Text>
+        {loadError ? (
+          <Text style={tailwind`text-center text-red-600 mb-4`}>Não foi possível carregar os clientes.</Text>
+        ) : customers.length === 0 ? (
+          <Text style={tailwind`text-center text-gray-500 mb-4`}>Ainda não há clientes.</Text>
+        ) : null}
         <View style={tailwind`flex flex-wrap justify-center`}>
           {customers.map((customer) => (
             <View key={customer.id} style={styles.card}>
               <Image
-                source={{ uri: `${baseAPI}${customer.avatar}` }}
+                source={
+                  customer.avatar
+                    ? { uri: customer.avatar.startsWith('http') ? customer.avatar : `${baseAPI}${customer.avatar}` }
+                    : undefined
+                }
                 style={styles.avatar}
               />
               <View style={styles.infoContainer}>

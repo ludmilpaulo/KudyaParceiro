@@ -1,118 +1,143 @@
-import React, { useEffect, useState, useCallback } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, Alert, ActivityIndicator, StyleSheet, Vibration, Linking } from 'react-native';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
+import { View, Text, ScrollView, TouchableOpacity, Alert, ActivityIndicator, StyleSheet, Linking, Platform } from 'react-native';
 import { useSelector } from 'react-redux';
 import tailwind from 'twrnc';
 import { selectUser } from '../../redux/slices/authSlice';
-import { baseAPI, OrderTypes } from '../../services/types';
+import { OrderTypes } from '../../services/types';
 import { fetchOrders, updateOrderStatus } from '../../services/apiService';
 import { scheduleLocalNotification } from '../../utils/localNotifications';
 import * as Haptics from 'expo-haptics';
 
+const ORDER_POLL_MS = 10000;
+const STATUS_PROCESSING = 1;
+
+const errorMessage = (error: unknown, fallback: string) =>
+  error instanceof Error && error.message ? error.message : fallback;
+
+const confirmAction = (message: string, onConfirm: () => void) => {
+  // Alert.alert is a no-op on react-native-web.
+  if (Platform.OS === 'web') {
+    if (typeof window !== 'undefined' && window.confirm(message)) onConfirm();
+    return;
+  }
+  Alert.alert('Confirmar', message, [
+    { text: 'Cancelar', style: 'cancel' },
+    { text: 'OK', onPress: onConfirm },
+  ]);
+};
+
 const Orders: React.FC = () => {
   const [orders, setOrders] = useState<OrderTypes[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
+  const [updatingId, setUpdatingId] = useState<number | null>(null);
   const user = useSelector(selectUser);
+  const userId = user?.user_id;
+  const knownOrderIds = useRef<Set<number> | null>(null);
 
-  const fetchOrderData = useCallback(async () => {
-    setLoading(true);
-    if (user?.user_id) {
-      try {
-        const data = await fetchOrders(user.user_id);
-        console.log("order response", data);
-        setOrders(data);
-      } catch (error) {
-        console.error("Ocorreu um erro:", error);
-      } finally {
-        setLoading(false);
+  const loadOrders = useCallback(async (notifyNew: boolean) => {
+    if (!userId) return;
+    try {
+      const data = await fetchOrders(userId);
+      const list = Array.isArray(data) ? data : [];
+      const previous = knownOrderIds.current;
+      const newProcessing = previous
+        ? list.filter((order) => !previous.has(order.id) && order.status_code === STATUS_PROCESSING)
+        : [];
+      knownOrderIds.current = new Set(list.map((order) => order.id));
+      setOrders(list);
+      setLoadError(null);
+      if (notifyNew && newProcessing.length > 0) {
+        void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => undefined);
+        void scheduleLocalNotification({
+          title: 'Novo Pedido',
+          body: newProcessing.length === 1
+            ? `Pedido #${newProcessing[0].id} recebido.`
+            : `${newProcessing.length} novos pedidos recebidos.`,
+          sound: true,
+        });
       }
+    } catch (error) {
+      setLoadError(errorMessage(error, 'Não foi possível carregar os pedidos.'));
+    } finally {
+      setLoading(false);
     }
-  }, [user?.user_id]);
+  }, [userId]);
 
-  const handleStatus = async (orderId: number, nextStatus: number, label: string) => {
-    const user_id = user?.user_id;
-    if (!user_id) {
-      Alert.alert("Erro", "ID do usuário não fornecido.");
+  useEffect(() => {
+    if (!userId) {
+      setLoading(false);
       return;
     }
+    knownOrderIds.current = null;
+    setLoading(true);
+    void loadOrders(false);
+    const timer = setInterval(() => {
+      void loadOrders(true);
+    }, ORDER_POLL_MS);
+    return () => clearInterval(timer);
+  }, [userId, loadOrders]);
 
-    Alert.alert(
-      "Confirmar",
-      label,
-      [
-        {
-          text: "Cancelar",
-          style: "cancel"
-        },
-        {
-          text: "OK",
-          onPress: async () => {
-            try {
-              await updateOrderStatus(user_id, orderId, nextStatus);
-              fetchOrderData();
-            } catch (error) {
-              console.error("Erro ao atualizar o status do pedido:", error);
-              Alert.alert("Erro", "Falha ao atualizar o status do pedido. Por favor, tente novamente.");
-            }
-          }
-        }
-      ]
-    );
+  const handleStatus = (orderId: number, nextStatus: number, label: string) => {
+    if (!userId) return;
+    confirmAction(label, async () => {
+      setActionError(null);
+      setUpdatingId(orderId);
+      try {
+        await updateOrderStatus(userId, orderId, nextStatus);
+        await loadOrders(false);
+      } catch (error) {
+        setActionError(errorMessage(error, 'Falha ao atualizar o status do pedido. Por favor, tente novamente.'));
+      } finally {
+        setUpdatingId(null);
+      }
+    });
   };
 
-  useEffect(() => {
-    const fetchOrdersPeriodically = setInterval(async () => {
-      if (!user?.user_id) return;
-      try {
-        const data = await fetchOrders(user.user_id);
-        if (JSON.stringify(data) !== JSON.stringify(orders)) {
-          setOrders(data);
-          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-          void scheduleLocalNotification({
-            title: "Novo Pedido",
-            body: "Você tem novos pedidos.",
-            sound: true,
-          });
-        }
-      } catch (error) {
-        console.error("Ocorreu um erro:", error);
-      }
-    }, 3000);
-
-    return () => clearInterval(fetchOrdersPeriodically);
-  }, [orders, user?.user_id]);
-
-  useEffect(() => {
-    fetchOrderData();
-  }, [fetchOrderData]);
+  if (loading) {
+    return (
+      <View style={styles.loadingOverlay}>
+        <ActivityIndicator size="large" color="#0000ff" />
+      </View>
+    );
+  }
 
   return (
     <View style={tailwind`flex-1 bg-white`}>
-      {loading ? (
-        <View style={styles.loadingOverlay}>
-          <ActivityIndicator size="large" color="#0000ff" />
+      {loadError ? (
+        <View style={tailwind`items-center p-4`}>
+          <Text style={tailwind`text-red-600 mb-2 text-center`}>{loadError}</Text>
+          <TouchableOpacity onPress={() => void loadOrders(false)} style={styles.actionButton}>
+            <Text style={styles.actionButtonText}>Tentar novamente</Text>
+          </TouchableOpacity>
         </View>
+      ) : null}
+      {actionError ? <Text style={tailwind`text-red-600 text-center p-2`}>{actionError}</Text> : null}
+      {!loadError && orders.length === 0 ? (
+        <Text style={tailwind`text-center text-gray-500 p-6`}>Ainda não há pedidos.</Text>
       ) : (
         <ScrollView>
-          {orders.map((order, index) => (
-            <View key={index} style={styles.card}>
+          {orders.map((order) => (
+            <View key={order.id} style={styles.card}>
               <View style={styles.cardHeader}>
                 <Text style={styles.cardTitle}>Pedido No: {order.id}</Text>
               </View>
               <View style={styles.cardContent}>
                 <Text style={styles.cardText}>
                   <Text style={styles.cardLabel}>Detalhes:</Text>{' '}
-                  {order.order_details.map((od, index) => (
+                  {(order.order_details ?? []).map((od, index) => (
                     <Text key={index}>
-                      {od.meal.name} {od.meal.price} x {od.quantity} = {od.sub_total}kz
+                      {od.meal?.name} {od.meal?.price} x {od.quantity} = {od.sub_total}kz
                       {index < order.order_details.length - 1 && '\n'}
                     </Text>
                   ))}
                 </Text>
                 <Text style={styles.cardText}>
-                  <Text style={styles.cardLabel}>Cliente:</Text> {order.customer.name}
+                  <Text style={styles.cardLabel}>Cliente:</Text> {order.customer?.name ?? '—'}
                 </Text>
                 <Text style={styles.cardText}>
-                  <Text style={styles.cardLabel}>Motorista:</Text> {order?.driver?.name}
+                  <Text style={styles.cardLabel}>Motorista:</Text> {order.driver?.name ?? '—'}
                 </Text>
                 <Text style={styles.cardText}>
                   <Text style={styles.cardLabel}>Total:</Text> {order.total}
@@ -123,23 +148,27 @@ const Orders: React.FC = () => {
                 <Text style={styles.cardText}>
                   <Text style={styles.cardLabel}>Status:</Text> {order.status}
                 </Text>
-                {order.payment_status_restaurant === 'paid' && (
+                {order.payment_status_restaurant === 'paid' && order.proof_of_payment_restaurant ? (
                   <TouchableOpacity
                     onPress={() => Linking.openURL(order.proof_of_payment_restaurant)}
                     style={styles.downloadButton}
                   >
                     <Text style={styles.downloadButtonText}>Baixar Comprovante de Pagamento</Text>
                   </TouchableOpacity>
-                )}
-                {order.status_code === 1 && (
+                ) : null}
+                {order.status_code === STATUS_PROCESSING && (
                   <View>
                     <TouchableOpacity
+                      disabled={updatingId === order.id}
                       onPress={() => handleStatus(order.id, 2, 'Marcar como pronto e chamar o motorista?')}
                       style={styles.actionButton}
                     >
-                      <Text style={styles.actionButtonText}>Pronto / Chamar motorista</Text>
+                      <Text style={styles.actionButtonText}>
+                        {updatingId === order.id ? 'A atualizar...' : 'Pronto / Chamar motorista'}
+                      </Text>
                     </TouchableOpacity>
                     <TouchableOpacity
+                      disabled={updatingId === order.id}
                       onPress={() => handleStatus(order.id, 5, 'Rejeitar este pedido?')}
                       style={[styles.actionButton, { backgroundColor: '#dc2626', marginTop: 8 }]}
                     >

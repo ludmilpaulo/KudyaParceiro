@@ -15,6 +15,7 @@ const Profile: React.FC = () => {
   const [restaurant, setRestaurant] = useState<RestaurantType | null>(null);
   const [openingHours, setOpeningHours] = useState<OpeningHourType[]>([]);
   const [activeTab, setActiveTab] = useState<string>('perfil');
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchRestaurant = async () => {
@@ -25,12 +26,20 @@ const Profile: React.FC = () => {
           const openingHoursData = await getOpeningHours(data.id);
           setOpeningHours(openingHoursData);
         } catch (error) {
-          console.error('Error fetching restaurant data', error);
+          setLoadError(error instanceof Error ? error.message : 'Não foi possível carregar os dados da loja.');
         }
       }
     };
     fetchRestaurant();
   }, [user]);
+
+  if (!restaurant && loadError) {
+    return (
+      <View style={tailwind`flex-1 justify-center items-center bg-white p-6`}>
+        <Text style={tailwind`text-red-600 text-center`}>{loadError}</Text>
+      </View>
+    );
+  }
 
   if (!restaurant) {
     return (

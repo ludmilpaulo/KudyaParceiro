@@ -36,6 +36,7 @@ const Report: React.FC = () => {
     total_restaurant_amount: 0,
   });
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   const [days, setDays] = useState<7 | 30 | 90>(7);
   const [timeframe, setTimeframe] = useState('week'); // legacy custom mode
   const [startDate, setStartDate] = useState(new Date());
@@ -51,6 +52,7 @@ const Report: React.FC = () => {
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
+      setLoadError(false);
       try {
         const naiveStartDate = toNaiveISOString(startDate);
         const naiveEndDate = toNaiveISOString(endDate);
@@ -64,7 +66,6 @@ const Report: React.FC = () => {
                 end_date: naiveEndDate,
               },
         );
-
         if ((responseData as { message?: string }).message) {
           // Handle the case where no sales data is available
           setData({
@@ -87,6 +88,7 @@ const Report: React.FC = () => {
       } catch (error: unknown) {
         const message = error instanceof Error ? error.message : 'Error fetching data';
         console.error('Error fetching data:', message);
+        setLoadError(true);
       } finally {
         setLoading(false);
       }
@@ -188,6 +190,11 @@ const Report: React.FC = () => {
   return (
     <ScrollView style={tailwind`flex-1 bg-white p-4`}>
       <Text style={tailwind`text-3xl font-bold text-center mb-8`}>Relatório da Loja</Text>
+      {loadError ? (
+        <Text style={tailwind`text-center text-red-600 mb-4`}>
+          Não foi possível carregar o relatório. Verifique a ligação e tente novamente.
+        </Text>
+      ) : null}
 
       {timeframe === 'week' && (
         <AnalyticsDaysFilter

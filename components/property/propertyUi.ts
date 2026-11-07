@@ -1,11 +1,11 @@
 import type { PropertyListing } from "../../types/property";
 
-/** Property vertical brand (teal) — distinct from food primary blue. */
+/** Property vertical brand (violet) — distinct from food primary blue. */
 export const propertyTheme = {
-  primary: "#0f766e",
-  primaryDark: "#0d9488",
-  primarySoft: "#ccfbf1",
-  accent: "#f59e0b",
+  primary: "#5b21b6",
+  primaryDark: "#4c1d95",
+  primarySoft: "#ede9fe",
+  accent: "#7c3aed",
   background: "#f4f6f8",
   surface: "#ffffff",
   text: "#0f172a",

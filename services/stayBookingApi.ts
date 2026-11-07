@@ -141,7 +141,12 @@ export async function fetchBlockedDates(listingId: number): Promise<PropertyBloc
 
 export async function createBlockedDates(
   listingId: number,
-  payload: { startDate: string; endDate: string; reason?: string; notes?: string },
+  payload: {
+    startDate: string;
+    endDate: string;
+    reason?: "owner_block" | "maintenance" | "other";
+    notes?: string;
+  },
 ): Promise<PropertyBlockedDate> {
   const response = await apiFetch(`/api/properties/me/listings/${listingId}/blocked-dates/`, {
     method: "POST",
@@ -149,7 +154,7 @@ export async function createBlockedDates(
     body: JSON.stringify({
       start_date: payload.startDate,
       end_date: payload.endDate,
-      reason: payload.reason ?? "",
+      reason: payload.reason ?? "owner_block",
       notes: payload.notes ?? "",
     }),
   });

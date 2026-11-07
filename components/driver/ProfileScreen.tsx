@@ -21,9 +21,13 @@ const ProfileScreen = () => {
 
   useEffect(() => {
     const fetchProfileData = async () => {
-      if (!user?.user_id) return;
+      if (!user?.token) return;
       try {
-        const response = await axios.post(`${baseAPI}/driver/profile/`, { user_id: user.user_id });
+        const response = await axios.post(
+          `${baseAPI}/driver/profile/`,
+          {},
+          { headers: { Authorization: `Bearer ${user.token}` } },
+        );
         const details = response.data?.customer_detais ?? response.data?.customer_details;
         if (details && typeof details === 'object') {
           setProfileData(prev => ({ ...prev, ...details }));

@@ -112,7 +112,8 @@ export default function PropertyStayCalendarScreen() {
       await createBlockedDates(listingId, {
         startDate,
         endDate,
-        reason: reason.trim(),
+        reason: "owner_block",
+        notes: reason.trim(),
       });
       setReason("");
       await load(listingId);
@@ -269,7 +270,7 @@ export default function PropertyStayCalendarScreen() {
                       <Text style={styles.blockRange}>
                         {block.startDate} → {block.endDate}
                       </Text>
-                      {block.reason ? <Text style={styles.muted}>{block.reason}</Text> : null}
+                      {block.notes ? <Text style={styles.muted}>{block.notes}</Text> : null}
                     </View>
                     <Pressable
                       style={styles.secondaryBtn}

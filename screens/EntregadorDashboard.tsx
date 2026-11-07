@@ -54,9 +54,9 @@ const EntregadorDashboard = () => {
   };
 
   const getUserData = async () => {
-    if (!user?.user_id) return;
+    if (!token) return;
     try {
-      const profile = await getDriverProfile(user.user_id, dispatch);
+      const profile = await getDriverProfile(token);
       const details = profile?.customer_detais ?? profile?.customer_details;
       const avatar = details?.avatar;
       const phone = details?.phone;
@@ -90,7 +90,7 @@ const EntregadorDashboard = () => {
   const fetchDataFromOrderEndpoint = async () => {
     console.log('Fetching data from order endpoint');
     try {
-      const orders = await getDriverOrders(dispatch);
+      const orders = await getDriverOrders(token);
       console.log('Orders fetched:', orders);
 
       const filteredOrders = orders.filter(order => {

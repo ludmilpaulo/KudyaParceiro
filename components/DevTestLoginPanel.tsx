@@ -16,6 +16,7 @@ const DEV_ACCOUNTS = [
   { label: 'Fill seed_driver login', username: 'seed_driver', password: 'seedpass123', half: false },
   { label: 'Fill test doctor login', username: 'doctor@kudya.shop', password: 'seedpass123', half: true },
   { label: 'Fill test store login', username: 'store@kudya.shop', password: 'seedpass123', half: true },
+  { label: 'Fill test grocery login', username: 'grocery@kudya.shop', password: 'seedpass123', half: false },
 ] as const;
 
 export default function DevTestLoginPanel({ onFill, disabled }: Props) {

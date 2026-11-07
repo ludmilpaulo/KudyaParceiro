@@ -1,5 +1,5 @@
 import React from 'react';
-import { ActivityIndicator, View, StyleSheet } from 'react-native';
+import PageSpinner from '../components/ui/PageSpinner';
 import { useSelector } from 'react-redux';
 import { selectUser } from '../redux/slices/authSlice';
 import { getPartnerCategorySlug, getPartnerDashboardKind, getUserRole } from '../utils/partnerRoles';
@@ -11,8 +11,15 @@ import CategoryPartnerDrawer from './CategoryPartnerDrawer';
 import DoctorDrawer from './DoctorDrawer';
 import PropertyDrawer from './PropertyDrawer';
 
-function resolveDrawer(partnerType: PartnerType | null, categorySlug: string) {
-  // Category slug wins for property so partners always get the listings dashboard.
+function resolveDrawer(
+  partnerType: PartnerType | null,
+  categorySlug: string,
+  role: string,
+) {
+  // Grocery is its own product — never reuse the restaurant drawer.
+  if (categorySlug === 'grocery' || partnerType === 'grocery' || role === 'grocery_store_owner') {
+    return <GroceryTabNavigator />;
+  }
   if (categorySlug === 'property' || categorySlug === 'stay' || partnerType === 'property') {
     return <PropertyDrawer />;
   }
@@ -33,7 +40,7 @@ function resolveDrawer(partnerType: PartnerType | null, categorySlug: string) {
     return <CategoryPartnerDrawer categorySlug={categorySlug} />;
   }
 
-  const kind = getPartnerDashboardKind(categorySlug);
+  const kind = getPartnerDashboardKind(categorySlug, role);
   if (kind === 'grocery' || categorySlug === 'grocery') {
     return <GroceryTabNavigator />;
   }
@@ -49,29 +56,22 @@ function resolveDrawer(partnerType: PartnerType | null, categorySlug: string) {
 export default function PartnerNavigator() {
   const user = useSelector(selectUser);
   const categorySlug = getPartnerCategorySlug(user) || 'business';
-  const knownPartnerKind = getPartnerDashboardKind(categorySlug);
+  const role = getUserRole(user || {});
+  const knownPartnerKind = getPartnerDashboardKind(categorySlug, role);
   const hasKnownPartnerKind =
     knownPartnerKind === 'doctor' ||
     knownPartnerKind === 'store' ||
     knownPartnerKind === 'grocery' ||
-    getUserRole(user) === 'doctor';
+    role === 'doctor';
 
   const { data: partnerMe, isLoading, isError } = useGetPartnerMeQuery(undefined, {
     skip: !user,
   });
 
   if (user && isLoading && !hasKnownPartnerKind) {
-    return (
-      <View style={styles.center}>
-        <ActivityIndicator size="large" color="#0f766e" />
-      </View>
-    );
+    return <PageSpinner color="#0f766e" />;
   }
 
   const partnerType = !isError && partnerMe ? partnerMe.partnerType : null;
-  return resolveDrawer(partnerType, categorySlug);
+  return resolveDrawer(partnerType, categorySlug, role);
 }
-
-const styles = StyleSheet.create({
-  center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-});
