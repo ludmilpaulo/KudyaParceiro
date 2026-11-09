@@ -14,6 +14,7 @@ import { logoutUser, selectUser } from '../redux/slices/authSlice';
 import { useTranslation } from '../hooks/useTranslation';
 import CategoryPartnerDashboard from '../screens/partner/CategoryPartnerDashboard';
 import Profile from '../components/restaurant/Profile';
+import PartnerCollectionsScreen from '../screens/partner/PartnerCollectionsScreen';
 import { fetchBusinessCategories, type BusinessCategory } from '../services/platformApi';
 import { getPartnerCategorySlug } from '../utils/partnerRoles';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -101,6 +102,17 @@ export default function CategoryPartnerDrawer({ categorySlug }: Props) {
           title: t('drawerProfile'),
           drawerIcon: ({ size }) => (
             <Ionicons name="person-outline" size={size} color="#FFF" />
+          ),
+        }}
+      />
+      <Drawer.Screen
+        name="CategoryCollections"
+        component={PartnerCollectionsScreen}
+        options={{
+          drawerLabel: t('collectionsTitle', 'Payment collections'),
+          title: t('collectionsTitle', 'Payment collections'),
+          drawerIcon: ({ size }) => (
+            <Ionicons name="cash-outline" size={size} color="#FFF" />
           ),
         }}
       />

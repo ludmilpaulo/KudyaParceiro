@@ -8,6 +8,8 @@ export const v1Client = {
     API.post<T>(`${API_V1_PREFIX}${path}`, data, config),
   patch: <T = unknown>(path: string, data?: unknown, config?: Parameters<typeof API.patch>[2]) =>
     API.patch<T>(`${API_V1_PREFIX}${path}`, data, config),
+  delete: <T = unknown>(path: string, config?: Parameters<typeof API.delete>[1]) =>
+    API.delete<T>(`${API_V1_PREFIX}${path}`, config),
 };
 
 export default v1Client;

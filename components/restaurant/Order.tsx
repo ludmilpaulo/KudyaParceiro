@@ -7,6 +7,9 @@ import { OrderTypes } from '../../services/types';
 import { fetchOrders, updateOrderStatus } from '../../services/apiService';
 import { scheduleLocalNotification } from '../../utils/localNotifications';
 import * as Haptics from 'expo-haptics';
+import FoodOrdersBoard from '../food/FoodOrdersBoard';
+import { useFoodPartnerMe } from '../../features/food/useFoodPartnerMe';
+import { useFoodTranslation } from '../../hooks/useFoodTranslation';
 
 const ORDER_POLL_MS = 10000;
 const STATUS_PROCESSING = 1;
@@ -26,7 +29,7 @@ const confirmAction = (message: string, onConfirm: () => void) => {
   ]);
 };
 
-const Orders: React.FC = () => {
+const LegacyOrders: React.FC = () => {
   const [orders, setOrders] = useState<OrderTypes[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -181,6 +184,30 @@ const Orders: React.FC = () => {
           ))}
         </ScrollView>
       )}
+    </View>
+  );
+};
+
+/** Restaurants use the Food v1 board; shops without a restaurant workspace keep the legacy list. */
+const Orders: React.FC = () => {
+  const { me, loading, notMember, error, reload } = useFoodPartnerMe();
+  const { ft } = useFoodTranslation();
+
+  if (loading) {
+    return (
+      <View style={styles.loadingOverlay}>
+        <ActivityIndicator size="large" color="#0000ff" />
+      </View>
+    );
+  }
+  if (me) return <FoodOrdersBoard me={me} />;
+  if (notMember) return <LegacyOrders />;
+  return (
+    <View style={tailwind`flex-1 items-center justify-center p-4 bg-white`}>
+      <Text style={tailwind`text-red-600 mb-2 text-center`}>{error || ft('foodOrdersLoadFailed')}</Text>
+      <TouchableOpacity onPress={reload} style={styles.actionButton}>
+        <Text style={styles.actionButtonText}>{ft('foodRetry')}</Text>
+      </TouchableOpacity>
     </View>
   );
 };

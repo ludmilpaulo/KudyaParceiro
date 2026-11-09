@@ -1,6 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import {
+  LANGUAGE_MANUAL_KEY,
   LANGUAGE_STORAGE_KEY,
   SupportedLocale,
   detectDeviceLanguage,
@@ -14,6 +15,7 @@ import { languageApi } from '../redux/slices/languageApi';
 type LanguageContextValue = {
   languageCode: SupportedLocale;
   setLanguage: (code: SupportedLocale) => Promise<void>;
+  followDeviceLanguage: () => Promise<void>;
   isReady: boolean;
   supportedLocales: readonly SupportedLocale[];
 };
@@ -28,19 +30,46 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
     let cancelled = false;
     (async () => {
       try {
-        const stored = await AsyncStorage.getItem(LANGUAGE_STORAGE_KEY);
-        const systemLang = detectDeviceLanguage();
-        let next: SupportedLocale =
+        const [stored, manualFlag] = await Promise.all([
+          AsyncStorage.getItem(LANGUAGE_STORAGE_KEY),
+          AsyncStorage.getItem(LANGUAGE_MANUAL_KEY),
+        ]);
+        const storedLocale =
           stored && supportedLocales.includes(stored as SupportedLocale)
             ? (stored as SupportedLocale)
-            : systemLang;
+            : null;
+        const legacyChoice = manualFlag == null && storedLocale != null;
+        const manual = (manualFlag === '1' || legacyChoice) && storedLocale != null;
+        if (legacyChoice) {
+          await AsyncStorage.setItem(LANGUAGE_MANUAL_KEY, '1');
+        }
+        const systemLang = detectDeviceLanguage();
+        let next: SupportedLocale = manual && storedLocale ? storedLocale : systemLang;
 
         try {
           const pref = await store
             .dispatch(languageApi.endpoints.getLanguagePreference.initiate())
             .unwrap();
-          if (pref.preferredLanguage && supportedLocales.includes(pref.preferredLanguage as SupportedLocale)) {
-            next = pref.preferredLanguage as SupportedLocale;
+          if (manual && storedLocale) {
+            await store.dispatch(
+              languageApi.endpoints.updateLanguagePreference.initiate({
+                preferredLanguage: storedLocale,
+                systemLanguage: systemLang,
+              }),
+            );
+          } else if (
+            pref.preferredLanguage &&
+            supportedLocales.includes(pref.preferredLanguage)
+          ) {
+            next = pref.preferredLanguage;
+            await AsyncStorage.setItem(LANGUAGE_STORAGE_KEY, next);
+            await AsyncStorage.setItem(LANGUAGE_MANUAL_KEY, '1');
+          } else {
+            await store.dispatch(
+              languageApi.endpoints.updateLanguagePreference.initiate({
+                systemLanguage: systemLang,
+              }),
+            );
           }
         } catch {
           // Use local/device language when backend is unavailable.
@@ -63,6 +92,7 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
     applyLanguage(code);
     setLanguageCode(code);
     await AsyncStorage.setItem(LANGUAGE_STORAGE_KEY, code);
+    await AsyncStorage.setItem(LANGUAGE_MANUAL_KEY, '1');
     try {
       await store.dispatch(
         languageApi.endpoints.updateLanguagePreference.initiate({
@@ -75,9 +105,25 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
+  const followDeviceLanguage = useCallback(async () => {
+    const next = detectDeviceLanguage();
+    applyLanguage(next);
+    setLanguageCode(next);
+    await AsyncStorage.multiRemove([LANGUAGE_MANUAL_KEY, LANGUAGE_STORAGE_KEY]);
+    try {
+      await store.dispatch(
+        languageApi.endpoints.updateLanguagePreference.initiate({
+          systemLanguage: next,
+        }),
+      );
+    } catch {
+      // Device language still applies locally.
+    }
+  }, []);
+
   const value = useMemo(
-    () => ({ languageCode, setLanguage, isReady, supportedLocales }),
-    [languageCode, setLanguage, isReady],
+    () => ({ languageCode, setLanguage, followDeviceLanguage, isReady, supportedLocales }),
+    [languageCode, setLanguage, followDeviceLanguage, isReady],
   );
 
   return <LanguageContext.Provider value={value}>{children}</LanguageContext.Provider>;

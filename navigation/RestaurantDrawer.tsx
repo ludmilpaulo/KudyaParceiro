@@ -22,6 +22,7 @@ import Orders from '../components/restaurant/Order';
 import Products from '../components/restaurant/Products';
 import Profile from '../components/restaurant/Profile';
 import Report from '../components/restaurant/Report';
+import PartnerCollectionsScreen from '../screens/partner/PartnerCollectionsScreen';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
 const Drawer = createDrawerNavigator();
@@ -143,6 +144,14 @@ const RestaurantDrawer = ({ categorySlug: _categorySlug = 'restaurant' }: { cate
         name="DriverList"
         component={DriverList}
         options={{ drawerLabel: t('drawerDrivers'), title: t('drawerDrivers') }}
+      />
+      <Drawer.Screen
+        name="Collections"
+        component={PartnerCollectionsScreen}
+        options={{
+          drawerLabel: t('collectionsTitle', 'Payment collections'),
+          title: t('collectionsTitle', 'Payment collections'),
+        }}
       />
     </Drawer.Navigator>
   );

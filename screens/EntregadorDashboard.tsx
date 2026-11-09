@@ -21,6 +21,7 @@ import {
   scheduleLocalNotification,
 } from "../utils/localNotifications";
 import FulfillmentPanel from "../features/fulfillment/components/FulfillmentPanel";
+import FoodCourierPanel from "../components/food/FoodCourierPanel";
 import { registerPartnerPushToken } from "../utils/registerPartnerPush";
 
 const EntregadorDashboard = () => {
@@ -229,6 +230,7 @@ const EntregadorDashboard = () => {
         </View>
       )}
       <ScrollView contentContainerStyle={styles.scrollViewContent}>
+        {showFood ? <FoodCourierPanel online={isOnline} /> : null}
         {showFood ? <FulfillmentPanel enabled={isOnline} /> : null}
         {loading ? (
           <ActivityIndicator size="large" color="#0000ff" />

@@ -5,6 +5,7 @@ import {
   DriverServiceMode,
 } from './authTypes';
 import { loginUserService } from './authService';
+import { appendFormDataFile } from '../utils/formDataFile';
 
 export type PartnerSignupData = {
   username: string;
@@ -47,18 +48,10 @@ export async function signupPartner(data: PartnerSignupData): Promise<AuthSessio
   formData.append('business_category', data.business_category);
 
   if (data.logo) {
-    formData.append('logo', {
-      uri: data.logo.uri,
-      type: data.logo.type,
-      name: data.logo.name,
-    } as unknown as Blob);
+    await appendFormDataFile(formData, 'logo', data.logo);
   }
   if (data.store_license) {
-    formData.append('store_license', {
-      uri: data.store_license.uri,
-      type: data.store_license.type,
-      name: data.store_license.name,
-    } as unknown as Blob);
+    await appendFormDataFile(formData, 'store_license', data.store_license);
   }
 
   const response = await apiFetch('/store/fornecedor/', {

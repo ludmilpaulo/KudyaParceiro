@@ -8,7 +8,6 @@ import { usePropertyTranslation } from "../../hooks/usePropertyTranslation";
 import { useUpdateLanguagePreferenceMutation } from "../../redux/slices/languageApi";
 
 const MODE_KEY = "@kudya-parceiro/language_mode";
-const PRIMARY: SupportedLocale[] = ["en", "pt", "fr"];
 
 type Props = {
   propertyPreview?: boolean;
@@ -17,21 +16,22 @@ type Props = {
 export default function LanguageSettingsScreen({ propertyPreview = false }: Props) {
   const { dt } = useDoctorTranslation();
   const { pt } = usePropertyTranslation();
-  const { languageCode, setLanguage, supportedLocales } = useLanguage();
+  const { languageCode, setLanguage, followDeviceLanguage, supportedLocales } = useLanguage();
   const [updateLanguage] = useUpdateLanguagePreferenceMutation();
   const [mode, setMode] = useState<"auto" | "manual">("manual");
 
   useEffect(() => {
-    if (!propertyPreview) return;
     void AsyncStorage.getItem(MODE_KEY).then((value) => {
-      if (value === "auto") setMode("auto");
+      if (value === "auto" || value === "manual") setMode(value);
     });
-  }, [propertyPreview]);
+  }, []);
 
   const selectLanguage = async (code: SupportedLocale, nextMode: "auto" | "manual") => {
-    if (propertyPreview) {
-      setMode(nextMode);
-      await AsyncStorage.setItem(MODE_KEY, nextMode);
+    setMode(nextMode);
+    await AsyncStorage.setItem(MODE_KEY, nextMode);
+    if (nextMode === "auto") {
+      await followDeviceLanguage();
+      return;
     }
     await setLanguage(code);
     try {
@@ -46,28 +46,24 @@ export default function LanguageSettingsScreen({ propertyPreview = false }: Prop
 
   const accent = propertyPreview ? "#5b21b6" : "#0f766e";
   const activeBg = propertyPreview ? "#ede9fe" : "#ecfeff";
-  const ordered = propertyPreview
-    ? [...PRIMARY, ...supportedLocales.filter((code) => !PRIMARY.includes(code))]
-    : [...supportedLocales];
+  const ordered = [...supportedLocales];
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <Text style={styles.title}>{dt("languageSettings")}</Text>
       <Text style={styles.subtitle}>{dt("preferredLanguage")}</Text>
       <View style={propertyPreview ? styles.card : undefined}>
-        {propertyPreview ? (
-          <Pressable
-            style={[styles.row, mode === "auto" && { borderColor: accent, backgroundColor: activeBg }]}
-            onPress={() => void selectLanguage(detectDeviceLanguage(), "auto")}
-          >
-            <Text style={[styles.rowText, mode === "auto" && { fontWeight: "700", color: accent }]}>
-              {pt("languageAutomatic")}
-            </Text>
-            {mode === "auto" ? <Text style={[styles.check, { color: accent }]}>✓</Text> : null}
-          </Pressable>
-        ) : null}
+        <Pressable
+          style={[styles.row, mode === "auto" && { borderColor: accent, backgroundColor: activeBg }]}
+          onPress={() => void selectLanguage(detectDeviceLanguage(), "auto")}
+        >
+          <Text style={[styles.rowText, mode === "auto" && { fontWeight: "700", color: accent }]}>
+            {pt("languageAutomatic")}
+          </Text>
+          {mode === "auto" ? <Text style={[styles.check, { color: accent }]}>✓</Text> : null}
+        </Pressable>
         {ordered.map((code) => {
-          const active = propertyPreview ? mode === "manual" && languageCode === code : languageCode === code;
+          const active = mode === "manual" && languageCode === code;
           return (
             <Pressable
               key={code}

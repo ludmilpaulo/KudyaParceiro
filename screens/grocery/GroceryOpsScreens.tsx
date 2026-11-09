@@ -20,7 +20,7 @@ import { GREEN, groceryStyles, statusColor } from "./groceryUi";
 
 type Nav = { navigate: (name: string, params?: { id?: number }) => void };
 
-const ORDER_STATUSES = ["", "new", "accepted", "preparing", "ready", "picked_up", "delivered", "cancelled"];
+const ORDER_STATUSES = ["", "new", "accepted", "preparing", "ready", "packed", "courier_assigned", "out_for_delivery", "picked_up", "delivered", "completed", "cancelled"];
 
 export function GroceryProductsScreen() {
   const { t } = useTranslation();

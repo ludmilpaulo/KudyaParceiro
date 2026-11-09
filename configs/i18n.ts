@@ -6,6 +6,7 @@ export { supportedLocales };
 export type { SupportedLocale, TranslationKey };
 
 export const LANGUAGE_STORAGE_KEY = '@kudya-parceiro/language';
+export const LANGUAGE_MANUAL_KEY = '@kudya-parceiro/language_manual';
 
 const FALLBACK_LOCALE: SupportedLocale = 'en';
 

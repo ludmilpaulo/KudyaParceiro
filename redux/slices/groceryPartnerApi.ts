@@ -69,6 +69,8 @@ export type GroceryPartnerRevenue = {
   net_earnings: number;
   pending_payout: number;
   paid_out: number;
+  thunes_collected?: number;
+  thunes_commission?: number;
 };
 
 export type GroceryPartnerAnalytics = {

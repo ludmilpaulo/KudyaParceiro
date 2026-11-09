@@ -2,6 +2,7 @@ import translations, { TranslationKey } from '../configs/translations';
 import { t as localT } from '../configs/i18n';
 import { useLanguage } from '../contexts/LanguageContext';
 import { financialT } from '../configs/financialTranslations';
+import { thunesT } from '../configs/thunesTranslations';
 import { groceryPartnerT } from '../configs/groceryPartnerTranslations';
 import { useApiTranslations } from './useApiTranslations';
 
@@ -12,6 +13,8 @@ export function useTranslation() {
   function t(key: string, fallback?: string): string {
     const financialValue = financialT(languageCode, key);
     if (financialValue) return financialValue;
+    const thunesValue = thunesT(languageCode, key);
+    if (thunesValue) return thunesValue;
     const groceryPartnerValue = groceryPartnerT(languageCode, key);
     if (groceryPartnerValue) return groceryPartnerValue;
     const apiValue = apiTranslations[key];

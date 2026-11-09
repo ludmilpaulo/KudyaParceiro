@@ -7,6 +7,8 @@ import { useDispatch } from "react-redux";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import { logoutUser } from "../redux/slices/authSlice";
 import { useDoctorTranslation } from "../hooks/useDoctorTranslation";
+import { useTranslation } from "../hooks/useTranslation";
+import PartnerCollectionsScreen from "../screens/partner/PartnerCollectionsScreen";
 import DoctorDashboardScreen from "../screens/doctor/DoctorDashboardScreen";
 import DoctorVerificationScreen from "../screens/doctor/DoctorVerificationScreen";
 import DoctorDocumentsScreen from "../screens/doctor/DoctorDocumentsScreen";
@@ -59,6 +61,7 @@ function CustomDrawerContent(props: DrawerContentComponentProps) {
 
 function DoctorDrawerNav() {
   const { dt } = useDoctorTranslation();
+  const { t } = useTranslation();
   const { data: verification } = useGetDoctorVerificationStatusQuery(undefined, {
     pollingInterval: 60000,
   });
@@ -154,6 +157,14 @@ function DoctorDrawerNav() {
             options={{
               title: dt("businessProfile"),
               drawerIcon: () => <Ionicons name="business-outline" size={22} color="#FFF" />,
+            }}
+          />
+          <Drawer.Screen
+            name="DoctorCollections"
+            component={PartnerCollectionsScreen}
+            options={{
+              title: t("collectionsTitle", "Payment collections"),
+              drawerIcon: () => <Ionicons name="cash-outline" size={22} color="#FFF" />,
             }}
           />
         </>

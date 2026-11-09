@@ -32,7 +32,13 @@ const NEXT: Record<string, { status: string; key: string }> = {
   new: { status: "accepted", key: "gpAcceptOrder" },
   accepted: { status: "preparing", key: "gpStartPreparing" },
   preparing: { status: "ready", key: "gpReadyPickup" },
-  ready: { status: "picked_up", key: "gpHandToDriver" },
+  ready: { status: "packed", key: "gpPackOrder" },
+  packed: { status: "courier_assigned", key: "gpAssignCourier" },
+  courier_assigned: { status: "out_for_delivery", key: "gpOutForDelivery" },
+  out_for_delivery: { status: "delivered", key: "gpMarkDelivered" },
+  picked_up: { status: "delivered", key: "gpMarkDelivered" },
+  handed_to_driver: { status: "delivered", key: "gpMarkDelivered" },
+  delivered: { status: "completed", key: "gpCompleteOrder" },
 };
 
 export function GroceryOrderDetailScreen() {
@@ -266,6 +272,8 @@ function GroceryRevenueBody({ titleKey }: { titleKey: string }) {
         [t("gpNetEarnings"), data.net_earnings],
         [t("gpPendingPayout"), data.pending_payout],
         [t("gpPaidOut"), data.paid_out],
+        [t("thunesCollected", "Thunes collected"), data.thunes_collected ?? 0],
+        [t("thunesCommission", "Thunes commission"), data.thunes_commission ?? 0],
       ].map(([label, value]) => (
         <View key={String(label)} style={groceryStyles.card}>
           <Text style={groceryStyles.muted}>{label}</Text>

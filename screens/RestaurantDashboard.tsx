@@ -1,6 +1,6 @@
 // screens/RestaurantDashboard.tsx
 import React, { useEffect, useState } from 'react';
-import { View, Text, ActivityIndicator, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, ActivityIndicator, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { useSelector } from 'react-redux';
 import { selectUser } from '../redux/slices/authSlice';
 import { fetchFornecedorData } from '../services/apiService';
@@ -11,6 +11,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { HelpCircle } from 'react-native-feather';
 import HelpGuideModal from '../components/HelpGuideModal';
 import RestaurantMiniAnalytics from '../components/restaurant/RestaurantMiniAnalytics';
+import FoodPartnerDashboardCard from '../components/food/FoodPartnerDashboardCard';
 import { analytics } from '../utils/mixpanel';
 
 const RestaurantDashboard: React.FC = () => {
@@ -89,24 +90,32 @@ const RestaurantDashboard: React.FC = () => {
 
   return (
     <LinearGradient colors={['#FCB61A', '#0171CE']} style={styles.container}>
-      <Screen>
+      <Screen style={styles.container}>
         {loading && (
           <View style={styles.loadingOverlay}>
             <ActivityIndicator size="large" color="#FFF" />
           </View>
         )}
-        {error && <Text style={tailwind`text-red-500`}>{error}</Text>}
-        {!loading && !error && fornecedor && (
-          <View style={tailwind`p-4`}>
-            <View style={styles.headerContainer}>
-              <Text style={tailwind`text-2xl font-bold text-white`}>Bem-vindo, {fornecedor.name}!</Text>
-              <TouchableOpacity onPress={() => setShowHelp(true)} style={styles.helpButton}>
-                <HelpCircle width={28} height={28} color="#FFF" />
-              </TouchableOpacity>
+        <ScrollView contentContainerStyle={tailwind`pb-8`}>
+          {error && <Text style={tailwind`text-red-500`}>{error}</Text>}
+          {!loading && !error && fornecedor && (
+            <View style={tailwind`p-4`}>
+              <View style={styles.headerContainer}>
+                <Text style={tailwind`text-2xl font-bold text-white`}>Bem-vindo, {fornecedor.name}!</Text>
+                <TouchableOpacity onPress={() => setShowHelp(true)} style={styles.helpButton}>
+                  <HelpCircle width={28} height={28} color="#FFF" />
+                </TouchableOpacity>
+              </View>
+              <FoodPartnerDashboardCard />
+              <RestaurantMiniAnalytics />
             </View>
-            <RestaurantMiniAnalytics />
-          </View>
-        )}
+          )}
+          {!loading && (error || !fornecedor) ? (
+            <View style={tailwind`p-4`}>
+              <FoodPartnerDashboardCard />
+            </View>
+          ) : null}
+        </ScrollView>
       </Screen>
       <HelpGuideModal
         visible={showHelp}

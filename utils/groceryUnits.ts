@@ -26,8 +26,13 @@ const ORDER_STATUS_KEYS: Record<string, string> = {
   accepted: "gpStatusAccepted",
   preparing: "gpStatusPreparing",
   ready: "gpStatusReady",
+  packed: "gpStatusPacked",
   picked_up: "gpStatusPickedUp",
+  handed_to_driver: "gpStatusHandedToDriver",
+  courier_assigned: "gpStatusCourierAssigned",
+  out_for_delivery: "gpStatusOutForDelivery",
   delivered: "gpStatusDelivered",
+  completed: "gpStatusCompleted",
   cancelled: "gpStatusCancelled",
   refunded: "gpStatusRefunded",
 };

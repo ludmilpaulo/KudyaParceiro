@@ -11,6 +11,8 @@ import Ionicons from "react-native-vector-icons/Ionicons";
 import { useDispatch } from "react-redux";
 import { logoutUser } from "../redux/slices/authSlice";
 import { usePropertyTranslation } from "../hooks/usePropertyTranslation";
+import { useTranslation } from "../hooks/useTranslation";
+import PartnerCollectionsScreen from "../screens/partner/PartnerCollectionsScreen";
 import PropertyDashboardScreen from "../screens/property/PropertyDashboardScreen";
 import PropertyListingsScreen from "../screens/property/PropertyListingsScreen";
 import PropertyAddWizardScreen from "../screens/property/PropertyAddWizardScreen";
@@ -59,6 +61,7 @@ function CustomDrawerContent(props: DrawerContentComponentProps) {
 
 export default function PropertyDrawer() {
   const { pt } = usePropertyTranslation();
+  const { t } = useTranslation();
 
   return (
     <Drawer.Navigator
@@ -136,6 +139,14 @@ export default function PropertyDrawer() {
           title: pt("properties"),
           drawerLabel: pt("pillProperties"),
           drawerIcon: () => <Ionicons name="business-outline" size={22} color="#5b21b6" />,
+        }}
+      />
+      <Drawer.Screen
+        name="PropertyCollections"
+        component={PartnerCollectionsScreen}
+        options={{
+          title: t("collectionsTitle", "Payment collections"),
+          drawerIcon: () => <Ionicons name="cash-outline" size={22} color="#5b21b6" />,
         }}
       />
       <Drawer.Screen

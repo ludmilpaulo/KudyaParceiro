@@ -65,8 +65,28 @@ export default function GroceryOrdersScreen() {
               </Pressable>
             ) : null}
             {status === 'ready' ? (
-              <Pressable onPress={() => updateStatus({ id: Number(order.id), status: 'handed_to_driver' })} style={tw`mt-3 rounded-xl bg-emerald-600 py-3`}>
-                <Text style={tw`text-center font-semibold text-white`}>Handed to Driver</Text>
+              <Pressable onPress={() => updateStatus({ id: Number(order.id), status: 'packed' })} style={tw`mt-3 rounded-xl bg-emerald-600 py-3`}>
+                <Text style={tw`text-center font-semibold text-white`}>Pack order</Text>
+              </Pressable>
+            ) : null}
+            {status === 'packed' ? (
+              <Pressable onPress={() => updateStatus({ id: Number(order.id), status: 'courier_assigned' })} style={tw`mt-3 rounded-xl bg-emerald-600 py-3`}>
+                <Text style={tw`text-center font-semibold text-white`}>Assign courier</Text>
+              </Pressable>
+            ) : null}
+            {status === 'courier_assigned' || status === 'picked_up' || status === 'handed_to_driver' ? (
+              <Pressable onPress={() => updateStatus({ id: Number(order.id), status: status === 'courier_assigned' ? 'out_for_delivery' : 'delivered' })} style={tw`mt-3 rounded-xl bg-emerald-600 py-3`}>
+                <Text style={tw`text-center font-semibold text-white`}>{status === 'courier_assigned' ? 'Out for delivery' : 'Mark delivered'}</Text>
+              </Pressable>
+            ) : null}
+            {status === 'out_for_delivery' ? (
+              <Pressable onPress={() => updateStatus({ id: Number(order.id), status: 'delivered' })} style={tw`mt-3 rounded-xl bg-emerald-600 py-3`}>
+                <Text style={tw`text-center font-semibold text-white`}>Mark delivered</Text>
+              </Pressable>
+            ) : null}
+            {status === 'delivered' ? (
+              <Pressable onPress={() => updateStatus({ id: Number(order.id), status: 'completed' })} style={tw`mt-3 rounded-xl bg-emerald-600 py-3`}>
+                <Text style={tw`text-center font-semibold text-white`}>Complete order</Text>
               </Pressable>
             ) : null}
           </View>

@@ -8,6 +8,10 @@ import { fetchCategorias, fetchProducts, addProduct, updateProduct, deleteProduc
 import { Product, Categoria } from '../../services/types';
 import * as ImagePicker from 'expo-image-picker';
 import { appendFormDataFile } from '../../utils/formDataFile';
+import FoodAddonGroupsModal from '../food/FoodAddonGroupsModal';
+import { useFoodPartnerMe } from '../../features/food/useFoodPartnerMe';
+import { hasFoodCapability } from '../../features/food/foodHelpers';
+import { useFoodTranslation } from '../../hooks/useFoodTranslation';
 
 type ProductFormValues = {
   name: string;
@@ -84,6 +88,10 @@ const Products: React.FC = () => {
     defaultValues: EMPTY_FORM,
   });
   const [image, setImage] = useState<string | null>(null);
+  const { me: foodMe } = useFoodPartnerMe();
+  const { ft } = useFoodTranslation();
+  const canManageAddons = hasFoodCapability(foodMe, 'manage_menu');
+  const [addonProduct, setAddonProduct] = useState<{ id: number; name: string } | null>(null);
 
   useEffect(() => {
     const loadCategorias = async () => {
@@ -315,6 +323,14 @@ const Products: React.FC = () => {
                     {product.is_active === false && (
                       <Text style={tailwind`text-xs text-orange-600`}>Indisponível</Text>
                     )}
+                    {canManageAddons && product.id != null ? (
+                      <TouchableOpacity
+                        onPress={() => setAddonProduct({ id: product.id as number, name: product.name ?? '' })}
+                        style={tailwind`mt-2 self-start px-3 py-1 rounded-full bg-blue-100`}
+                      >
+                        <Text style={tailwind`text-xs font-bold text-blue-700`}>{ft('foodAddons')}</Text>
+                      </TouchableOpacity>
+                    ) : null}
                   </View>
                   <View style={styles.cardActions}>
                     <TouchableOpacity onPress={() => openEditModal(product)}>
@@ -442,6 +458,14 @@ const Products: React.FC = () => {
           </View>
         </KeyboardAvoidingView>
       </Modal>
+
+      {canManageAddons ? (
+        <FoodAddonGroupsModal
+          productId={addonProduct?.id ?? null}
+          productName={addonProduct?.name ?? ''}
+          onClose={() => setAddonProduct(null)}
+        />
+      ) : null}
     </View>
   );
 };

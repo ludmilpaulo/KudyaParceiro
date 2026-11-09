@@ -1,9 +1,9 @@
 export const theme = {
   colors: {
-    primary: '#0171CE',
-    primaryDark: '#015AAB',
-    accent: '#FCB61A',
-    accentDark: '#E5A017',
+    primary: '#6D28D9',
+    primaryDark: '#5B21B6',
+    accent: '#7C3AED',
+    accentDark: '#5B21B6',
     text: '#111827',
     textSecondary: '#4B5563',
     textMuted: '#9CA3AF',
@@ -14,9 +14,9 @@ export const theme = {
     success: '#059669',
   },
   gradient: {
-    hero: ['#0171CE', '#0359A8', '#023E75'] as const,
-    warm: ['#FCB61A', '#0171CE'] as const,
-    button: ['#0171CE', '#0359A8'] as const,
+    hero: ['#6D28D9', '#5B21B6', '#4C1D95'] as const,
+    warm: ['#7C3AED', '#6D28D9'] as const,
+    button: ['#6D28D9', '#5B21B6'] as const,
     card: ['#FFFFFF', '#F8FAFC'] as const,
   },
   radius: {
