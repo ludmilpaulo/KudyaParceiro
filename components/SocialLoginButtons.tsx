@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { View, Text, TouchableOpacity, ActivityIndicator, Alert, Platform } from 'react-native';
 import { AntDesign, FontAwesome5 } from '@expo/vector-icons';
 import * as AppleAuthentication from 'expo-apple-authentication';
@@ -46,6 +46,8 @@ export default function SocialLoginButtons({ onSuccess, disabled }: Props) {
   const [, setConfigReady] = useState(0);
   const [googleRequest, googleResponse, promptGoogle] = useGoogleAuth();
   const [fbRequest, fbResponse, promptFacebook] = useFacebookAuth();
+  // Parents pass a fresh onSuccess each render; without this the same response is exchanged again.
+  const handledResponses = useRef(new WeakSet<object>());
 
   useEffect(() => {
     if (Platform.OS === 'ios') {
@@ -55,7 +57,9 @@ export default function SocialLoginButtons({ onSuccess, disabled }: Props) {
   }, []);
 
   useEffect(() => {
-    if (googleResponse?.type === 'success') {
+    if (!googleResponse || handledResponses.current.has(googleResponse)) return;
+    handledResponses.current.add(googleResponse);
+    if (googleResponse.type === 'success') {
       (async () => {
         try {
           setLoadingProvider('google');
@@ -69,13 +73,15 @@ export default function SocialLoginButtons({ onSuccess, disabled }: Props) {
           setLoadingProvider(null);
         }
       })();
-    } else if (googleResponse?.type === 'cancel' || googleResponse?.type === 'dismiss') {
+    } else if (googleResponse.type === 'cancel' || googleResponse.type === 'dismiss') {
       setLoadingProvider(null);
     }
   }, [googleResponse, onSuccess, t]);
 
   useEffect(() => {
-    if (fbResponse?.type === 'success') {
+    if (!fbResponse || handledResponses.current.has(fbResponse)) return;
+    handledResponses.current.add(fbResponse);
+    if (fbResponse.type === 'success') {
       (async () => {
         try {
           setLoadingProvider('facebook');
@@ -89,7 +95,7 @@ export default function SocialLoginButtons({ onSuccess, disabled }: Props) {
           setLoadingProvider(null);
         }
       })();
-    } else if (fbResponse?.type === 'cancel' || fbResponse?.type === 'dismiss') {
+    } else if (fbResponse.type === 'cancel' || fbResponse.type === 'dismiss') {
       setLoadingProvider(null);
     }
   }, [fbResponse, onSuccess, t]);
