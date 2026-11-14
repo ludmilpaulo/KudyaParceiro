@@ -47,12 +47,14 @@
   "submit": {
     "play-production": {
       "android": {
+        "serviceAccountKeyPath": "../credentials/google-play-service-account.json",
         "track": "production",
         "releaseStatus": "draft"
       }
     },
     "production": {
       "android": {
+        "serviceAccountKeyPath": "../credentials/google-play-service-account.json",
         "track": "internal",
         "releaseStatus": "completed"
       },
