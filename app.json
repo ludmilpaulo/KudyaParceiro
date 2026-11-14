@@ -3,7 +3,7 @@
     "name": "Kudya Parceiro",
     "slug": "kudya-parceiro",
     "scheme": "kudyaparceiro",
-    "version": "1.0.13",
+    "version": "1.0.14",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -42,7 +42,7 @@
         "backgroundColor": "#ffffff"
       },
       "package": "com.ludmil.KudyaParceiro",
-      "versionCode": 23
+      "versionCode": 24
     },
     "web": {
       "favicon": "./assets/azul.png"

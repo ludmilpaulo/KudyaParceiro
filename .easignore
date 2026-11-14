@@ -13,3 +13,6 @@ dist/
 coverage/
 **/*.test.ts
 **/*.test.tsx
+.codex-day-export/
+.codex-export-dayops/
+scripts/shots/
